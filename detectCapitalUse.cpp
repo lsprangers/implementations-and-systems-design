@@ -1,34 +1,26 @@
+#include "string"
+using namespace std;
+
 class Solution {
 public:
     bool detectCapitalUse(string word) {
-        bool allUpper = false;
-        bool allLower = false;
-        bool camelCase = false;
-        if(word.length() < 2){
+        int capCount = 0;
+        for(char& c: word){
+            if(isupper(c)){
+                capCount++;
+            }
+        }
+
+        // all upper or lower
+        if(capCount == word.length() || capCount == 0){
             return(true);
         }
-        if(isupper(word[0])){
-            allUpper = true;
-            camelCase = true;
-            allLower = false;
+        // camel case
+        else if(isupper(word[0]) && capCount == 1){
+            return(true);
         }
         else {
-            allUpper = false;
-            camelCase = false;
-            allLower = true;
+            return(false);
         }
-        for(int i = 1; i < word.length(); i++) {
-            if(isupper(word[i])){
-                allUpper = allUpper && true;
-                allLower = false;
-                camelCase = false;
-            }
-            else {
-                allUpper = false;
-                camelCase = camelCase && true;
-                allLower = allLower && true;
-            }
-        }
-        return (allUpper || allLower || camelCase);
     }
 };
