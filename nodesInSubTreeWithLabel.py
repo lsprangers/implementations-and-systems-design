@@ -1,5 +1,4 @@
 # problem 1519
-# was so close myself
 from typing import List 
 from collections import defaultdict, Counter
 
@@ -8,21 +7,25 @@ class Solution:
         tree = defaultdict(list)
         for s,e in edges:
             tree[s].append(e)
-            tree[e].append(s)
+            # tree[e].append(s)
         
         res = [0] * n
         
-        def dfs(node, par):
-            nonlocal res
+        def dfs(cur_node):
+            # keep res as a nonlocal variable - we want it to be te same
+            #   across recursive calls
+            nonlocal res 
+
+            # keep a counter to count everything "below" this in the tree
             count = Counter()
-            for nei in tree[node]:
-                if nei != par:
-                    count += dfs(nei, node)
-            
-            count[labels[node]] += 1
-            res[node] = count[labels[node]]
-            
+
+            for neighbor in tree[cur_node]:
+                count += dfs(neighbor)
+
+            count[labels[cur_node]] += 1
+            res[cur_node] = count[labels[cur_node]]
+
             return count
-        
-        dfs(0,-1)
+
+        dfs(0)
         return res
