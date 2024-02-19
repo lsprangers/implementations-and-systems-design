@@ -23,7 +23,7 @@ class Solution {
 public:
     int maximumUnits(vector<vector<int>>& boxTypes, int truckSize) {
         int resp = 0;
-        priority_queue<vector<int>, vector<vector<int>>, SortSecondary> maxHeap(boxTypes.begin(), boxTypes.end());
+         
         while(!maxHeap.empty() && truckSize > 0) {
             vector<int> thisBoxSet = maxHeap.top();
             maxHeap.pop();
