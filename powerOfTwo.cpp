@@ -1,6 +1,6 @@
 #include <math.h>;
 using namespace std;
-//231 
+//231
 class Solution {
 public:
     bool isPowerOfTwo(int n) {
