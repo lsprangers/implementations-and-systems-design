@@ -1,4 +1,4 @@
-// 876 leet
+// 876
 struct ListNode {
     int val;
     ListNode *next;
@@ -9,17 +9,11 @@ struct ListNode {
 class Solution {
 public:
     ListNode* middleNode(ListNode* head) {
-        ListNode* fast = head;
         ListNode* slow = head;
-        
-        while(fast->next != nullptr && fast->next->next != nullptr) {
+        ListNode* fast = head;
+        while(slow != nullptr && fast != nullptr && fast->next != nullptr) {
+            slow = slow->next;
             fast = fast->next->next;
-            slow = slow->next;
-        }
-        // covers the 2nd middle node case
-        while(fast->next != nullptr) {
-            fast = fast->next;
-            slow = slow->next;
         }
         return(slow);
     }
