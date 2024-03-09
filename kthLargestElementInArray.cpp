@@ -5,16 +5,16 @@ using namespace std;
 class Solution {
 public:
     int findKthLargest(vector<int>& nums, int k) {
-        priority_queue<int, vector<int>, greater<int>> maxHeap;
+        priority_queue<int, vector<int>, greater<int>> minHeap;
         //O(n * log k) time
         //  Each loop is n
         //  In each loop we do log k work by inserting
         for(int num : nums) {
-            maxHeap.push(num);
-            while(maxHeap.size() > k) {
-                maxHeap.pop();
+            minHeap.push(num);
+            while(minHeap.size() > k) {
+                minHeap.pop();
             }
         }
-        return(maxHeap.top());
+        return(minHeap.top());
     }
 };

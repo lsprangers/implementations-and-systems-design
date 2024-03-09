@@ -13,12 +13,23 @@ struct TreeNode {
 class Solution {
 public:
     bool isSameTree(TreeNode* p, TreeNode* q) {
-        if(!p && !q){
+        // cover both nulls
+        if(p == nullptr and q == nullptr) {
             return(true);
         }
-        if(!p || !q){
+        // if both aren't null, but one is, return false
+        if(p == nullptr or q == nullptr) {
             return(false);
         }
-        return(p->val==q->val && isSameTree(p->left, q->left) && isSameTree(p->right, q->right));
+        // check equivalence   
+        if(p->val != q->val) {
+            return(false);
+        }
+        // recurse
+        return(
+            isSameTree(p->left, q->left) 
+            &&
+            isSameTree(p->right, q->right) 
+        );
     }
 };
