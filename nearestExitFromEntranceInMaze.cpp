@@ -39,7 +39,7 @@ public:
                 int currSteps = curr[2];
                 if(is_exit(currRow, currCol)) {
                     resp = min(resp, currSteps);
-                } 
+                }
                 
                 for(vector<int> dir : dirs) {
                     int nextRow = currRow + dir[0];
