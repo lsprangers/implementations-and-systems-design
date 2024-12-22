@@ -6,36 +6,26 @@ using namespace std;
 class Solution {
 public:
     bool isValid(string s) {
-        if(s.size() < 2) {
-            return(false);
-        }
-        stack<char> stk;
-        vector<char> right = {')', ']', '}'};
-        vector<char> left = {'(', '[', '{'};
-        
-        for(int i = 0; i < s.size(); i++) {
-            if( find(left.begin(), left.end(), s[i]) != left.end() ) {
-                stk.push(s[i]);
-            }
-            else {
-                if(stk.size() < 1) {
+        stack<char> stack;
+        set<char> ends{')', '}', ']'};
+        unordered_map<char, char> lookup{ {'(', ')'},  {'[', ']'},  {'{', '}'} };
+
+        for(char c : s) {
+            // If end
+            if(ends.find(c) != ends.end()) {
+                if(stack.size() == 0) {
                     return(false);
                 }
-                char toCheck = stk.top();
-                stk.pop();
-                auto it = find(left.begin(), left.end(), toCheck); 
-  
-                if (it != left.end()) {
-                    int idx = it - left.begin(); 
-                    if(s[i] != right[idx]) {
-                        return(false);
-                    }
+                char latest = stack.top();
+                stack.pop();
+                if(lookup[latest] != c) {
+                    return(false);
                 }
             }
+            else {
+                stack.push(c);
+            }
         }
-        if(stk.size() > 0) {
-            return(false);
-        }
-        return(true);
+        return(stack.size() == 0);
     }
 };
