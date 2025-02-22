@@ -3,6 +3,8 @@ There are some things that are generally true across system design questions
 
 ## Functional Requirements
 
+## Non-Functional Requirements
+
 ### Scalable
 This usually just means it's going to be called a lot, and so we'll need partitions, meaning there are tradeoffs on the Availability-Consistency spectrum we need to choose
     - Almost every system always needs to be scalable, i.e. needs partitions, i.e. has main trade-offs between availability and consistency
