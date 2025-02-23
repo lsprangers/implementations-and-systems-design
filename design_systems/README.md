@@ -31,24 +31,24 @@ Almost every single system a set of similar patterns, and there are components l
 #### Front End
 - Front end we usually have some sort of DNS resolution to IP address, where the IP address relates to our Load Balancers
 - Once it reaches (app) load balancers it will do TLS/SSL termination, decrypt, and forward to either API Gateway, or straight to web apps
-- [Our README for our typical frontend](typical_frontend/README.md)
+- [Our README for our typical frontend](_typical_frontend/README.md)
 
 #### Queue's
 - 
-- [Our README for our typical queue](typical_distributed_queue/README.md)
+- [Our README for our typical queue](_typical_distributed_queue/README.md)
 
 #### KV Store
 - 
-- [Our README for our typical KV Store](typical_distributed_kv_store/README.md)
+- [Our README for our typical KV Store](_typical_distributed_kv_store/README.md)
 
 #### Cache
 - 
-- [Our README for our typical cache](typical_distributed_cache/README.md)
+- [Our README for our typical cache](_typical_distributed_cache/README.md)
 
 #### Pub Sub
 - 
-- [Our README for our typical pub sub](typical_distributed_distributed_pubsub/README.md)
+- [Our README for our typical pub sub](_typical_distributed_distributed_pubsub/README.md)
 
 #### Blob Storage
 - 
-- [Our README for our typical pub sub](typical_distributed_distributed_pubsub/README.md)
+- [Our README for our typical pub sub](_typical_distributed_distributed_pubsub/README.md)
