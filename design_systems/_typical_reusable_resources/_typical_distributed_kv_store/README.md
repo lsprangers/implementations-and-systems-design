@@ -3,6 +3,12 @@ Basically an API over a hash map
 
 There are some other things we can do in terms of indexing, sharding, consistency, and replication that causes differences between different systems
 
+## Implementation
+In this scenario we chose to create a distributed, sharded KV store with node ranges based on consistent hashing, and replication done via RAFT
+- Each "node" in the system is actually a RAFT cluster with one leader and multiple replicas
+- The nodes are considered fault tolerant, replicated, and consistent
+- The cluster itself can autoscale by placing new nodes in the ring and shuffling to split, or by deleting nodes and shuffling to merge
+
 Code for this is easiest to just view my crappy [RAFT Repo](https://github.com/lsprangers/raft-course/blob/main/README.md) instead of me trying to recreate it heres
 
 ## Isolation Levels
@@ -23,7 +29,7 @@ Data grew:
 - Especially for social networks
 - To increase read throughput they copied data
 
-![Situation](old_to_current.png)
+![Situation](images/old_to_current.png)
 
 ## Where things are
 Most database clusters today are actually clusters of clusters!
@@ -32,7 +38,7 @@ Sharding our database into multiple nodes, where each node handles a shard, allo
 
 Replication of those nodes helps us to scale reads on those nodes, and also to provide fault tolerance
 
-![How A Current KV Cluster Looks](current_KV_cluster.png)
+![How A Current KV Cluster Looks](images/current_KV_cluster.png)
 
 ### Scaling
 If our database grows too large and is crashing we have 2 options - Horizontal or Vertical Scaling

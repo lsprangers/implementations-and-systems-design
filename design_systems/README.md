@@ -26,7 +26,7 @@ Generally we still need to choose between highly performant availability, and li
 ***There are ways to handle all of these trade-offs, and the Availability-Consistency spectrum spans a large space that's covered by many database types, isolation levels, and choices - all of them are useful in different scenarios***
 
 ### Typical Patterns
-Almost every single system a set of similar patterns, and there are components listed throughout our repo for "typical" components such as frontend infra, queue, KV store, and cache
+Almost every single system a set of similar patterns, and there are components listed throughout our repo for "typical reusable" components such as frontend infra, queue, KV store, and cache
 
 #### Front End
 - Front end we usually have some sort of DNS resolution to IP address, where the IP address relates to our Load Balancers

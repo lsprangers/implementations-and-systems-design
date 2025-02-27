@@ -16,10 +16,10 @@ So for the Repeatable Read Isolation Level identifed below, how can it enforce r
 
 Non-Repeatble reads can be avoided by once reading a row just locking it so that transactions can't update it until that transaction is completed (it specifies it's reads are done)
 
-![Non-Repeatable Read](non_repeatable_read.png)
+![Non-Repeatable Read](images/non_repeatable_read.png)
 
 This can be solved by locking the single rows!
-![Repeatable Read](repeatable_read.png)
+![Repeatable Read](images/repeatable_read.png)
 
 Phantom reads can still occur because the set of rows in a query can't all be locked, since this would require a full scan of the database for all of these filters!
 

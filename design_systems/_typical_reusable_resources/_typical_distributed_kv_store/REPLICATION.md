@@ -37,7 +37,7 @@ Each replica has a replication slot, which is basically just the metadata of the
     - So maybe one replica is currently at the 3rd command `insert (a, 2)`
     - And the other replica is up to date and has done `delete (a, 2)`
     - ***We can see here that the two replica's aren't consistent! A request to either would result in 2 different results***
-![WAL](wal.png)
+![WAL](images/wal.png)
 
 This type of replication is typically used in the Data Engineering world between replicas to serve requests, to push from an application database to an analytical data warehouse, or to push events from an app database onto an event broker
 
@@ -89,7 +89,7 @@ Let's say there are 4 nodes:
 - We need to pick `w` and `r` such that there's at least one node in common between them, i.e., `w + r > n`.
 - `3 + 2 > 4`
 - On each write, we know we must update at least 3 nodes in total, and when any node is requested to serve a client, it needs to check with at least 2 other nodes.
-![Generic Quorum](generic_quorum.png)
+![Generic Quorum](images/generic_quorum.png)
 
 ### Leader vs Leaderless
 - RAFT and Paxos consensus algorithms have leaders, where one single node accepts all reads and writes and RPC's out to followers

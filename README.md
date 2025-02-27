@@ -1,5 +1,10 @@
-## Leet
-This is just a dump of leetcode problems and comments
+## Design Systems
+Building specific systems based utilizing [Typical Resources](#typical-resources)
+
+Some examples include URL shortener, Youtube, Youtube Search, Top K Heavy Hitters, etc...
+
+### Typical Resources
+These are discussions and implementations of "typical" resources like distributed KV store, front end load balancer + metadata, distributed queue, etc...
 
 ## Implementations
 This is a folder of generic implementations of things like
@@ -13,3 +18,12 @@ This is a folder of generic implementations of things like
         parts of the implementation would be multi-threading
     - Goes hand in hand with the RAFT repository where we show how to create a strongly
         consistent RAFT cluster to back a distributed, sharded, KV Store
+
+### Deque
+-  Creating a deque from linked lists, and doing things like sorting, traversal, etc...
+
+### Merge Sort
+- Following from needing merge sort in deque sort just implemented it here
+
+## Leet
+This is just a dump of leetcode problems and comments

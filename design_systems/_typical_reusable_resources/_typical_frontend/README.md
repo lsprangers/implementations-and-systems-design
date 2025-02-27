@@ -2,7 +2,7 @@
 This is one of the common components we'd use across products, and is comprised of a static name / IP for a load balancer and some services
 
 ## Architecture
-![Typical FrontEnd](typical_loadbalancer.png)
+![Typical FrontEnd](images/typical_loadbalancer.png)
 
 ## VIP 
 Virtual IP (VIP) is an IP address not tied to a physical network interface
@@ -35,5 +35,3 @@ AWS:
     - Similar to above, except we register services and instances instead of IP addresses
         - If a client goes to `url.com/register` --forward_to--> ECS registration service with 1:Many instances running
         - Still need to register port information that ECS containers would be listening to, along with ensuring security group routing rules
-
-## 
