@@ -1,7 +1,7 @@
 # Key Value Store
 Basically an API over a hash map
 
-There are some other things we can do in terms of indexing, partitioning, consistency, and replication that causes differences between different systems
+There are some other things we can do in terms of indexing, sharding, consistency, and replication that causes differences between different systems
 
 Code for this is easiest to just view my crappy [RAFT Repo](https://github.com/lsprangers/raft-course/blob/main/README.md) instead of me trying to recreate it heres
 
@@ -28,7 +28,7 @@ Data grew:
 ## Where things are
 Most database clusters today are actually clusters of clusters!
 
-Partitioning our database into multiple nodes, where each node handles a partition, allows us to split up our data so that it's not sitting on one single machine
+Sharding our database into multiple nodes, where each node handles a shard, allows us to split up our data so that it's not sitting on one single machine
 
 Replication of those nodes helps us to scale reads on those nodes, and also to provide fault tolerance
 
@@ -41,8 +41,8 @@ Vertical scaling equates to "make the compute larger" which reaches limitations 
 
 Horizontal scaling is usually the route taken where we take our database and split it up into subsets
 
-### Partitioning
-Partitioning is useful when we want to have different nodes accept reads and writes for different subsets of our database, and sometimes it's required when our data can't sit on a single machine
+### Sharding
+Sharding is useful when we want to have different nodes accept reads and writes for different subsets of our database, and sometimes it's required when our data can't sit on a single machine
 
 ```
 fake table
@@ -51,12 +51,12 @@ fake table
 2 d e f
 3 g h i
 ```
-Partitioning can be done horizontally or vertically as well
-    - Horizontal partitioning is when we split up by rows, so maybe we have `1 a b c` in one node, and `2 d e f` in another
-    - Vertical partitioning is when we split things up by columns so maybe `a d g` is on one node, and `c f i` in another
+Sharding can be done horizontally or vertically as well
+    - Horizontal sharding is when we split up by rows, so maybe we have `1 a b c` in one node, and `2 d e f` in another
+    - Vertical sharding is when we split things up by columns so maybe `a d g` is on one node, and `c f i` in another
 
 ### Replication
-For each node in a partition (or the single node in a non-partitioned database) we can use [Replication](REPLICATION.md) to solve 2 major problems - Fault Tolerance and Scaling 
+For each node in a shard (or the single node in a non-sharded database) we can use [Replication](REPLICATION.md) to solve 2 major problems - Fault Tolerance and Scaling 
 
 Fault tolerance is solved by replicating the data onto other nodes, so if the main leader fails then the replica can take over
 
@@ -70,4 +70,4 @@ The below [Replication](REPLICATION.md) implementations are all covered in the s
     - Leader vs Leaderless
 - Quourum
 - WAL
-- Snapshot
+- Snapshot 
