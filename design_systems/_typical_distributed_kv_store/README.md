@@ -66,7 +66,8 @@ Scaling can be solved by using those replicas to serve reads
 Replication is tied heavily into [Isolation Levels](ISOLATION_LEVELS.md) because the way these nodes are able to serve data depends on that isolation level
 
 The below [Replication](REPLICATION.md) implementations are all covered in the supporting document
-    - Quorum
-        - Leader vs Leaderless
-    - WAL
-    - Snapshot
+- Consensus
+    - Leader vs Leaderless
+- Quourum
+- WAL
+- Snapshot

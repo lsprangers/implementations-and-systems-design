@@ -27,14 +27,14 @@ Phantom reads can still occur because the set of rows in a query can't all be lo
 
 ### Isolation Level Spectrum
 There's a spectrum below, from strictest to least strict, in performant availability (fast response) vs consistency (write and updates are shown in reads):
-    - **Linearizable** means the transactions that occur appear ***linear***, meaning sequential, meaning things acts like the "old days". But this means we need consensus and consistency, maybe using something like [RAFT](https://github.com/lsprangers/raft-course/blob/main/README.md) which slows things down (less availability) but guarantees consistency
-        - *Causal Consistency* is around consensus and consistency where the nodes affected by writes will see all nodes that need to see them (typically happens with quorum based systems)
-    - **Serializable** is in the same vein as linearizable, where the transactions on a database act as a sequential update. These transactions can truly happen in parallel, but they will appear to the user as sequential updates. ***It does not guarantee the order of the transactions***
-        - *Snapshot Isolation* is a form/implementation of serializability, and updates things serially on snapshots of data. It allows for more concurrency but also leads to some weird anomalies
-    - **Repeatable Read** shows that transactions can read the same data multiple times and get the same result of data, but phantom reads may still occur
-    - **Read Committed** revolves around transactions and all reads are on transactions that have been committed, but there are things like non-repeatable and phantom reads that still occur
-        - If a tranasction commits itself during a longer lived read transaction, it will be a non-repeatable read
-    - **Read Uncommitted** lets transactions read uncommitted data, allowing dirty reads.
+- **Linearizable** means the transactions that occur appear ***linear***, meaning sequential, meaning things acts like the "old days". But this means we need consensus and consistency, maybe using something like [RAFT](https://github.com/lsprangers/raft-course/blob/main/README.md) which slows things down (less availability) but guarantees consistency
+    - *Causal Consistency* is around consensus and consistency where the nodes affected by writes will see all nodes that need to see them (typically happens with quorum based systems)
+- **Serializable** is in the same vein as linearizable, where the transactions on a database appear to occur as sequential updates. Allows for execution to happen concurrently, but the outcome appears to be sequential. ***However, it does not guarantee the order of the transactions***
+    - *Snapshot Isolation* is a form/implementation of serializability, and updates things serially on snapshots of data. It allows for more concurrency but also leads to some weird anomalies
+- **Repeatable Read** shows that transactions can read the same data multiple times and get the same result of data, but phantom reads may still occur
+- **Read Committed** revolves around transactions and all reads are on transactions that have been committed, but there are things like non-repeatable and phantom reads that still occur
+    - If a tranasction commits itself during a longer lived read transaction, it will be a non-repeatable read
+- **Read Uncommitted** lets transactions read uncommitted data, allowing dirty reads.
 
 ### Summary of Isolation Levels
 - **Read Uncommitted**: Allows dirty reads.
