@@ -11,6 +11,7 @@ This is a place I write common data structures so I can use them in design syste
     - The first non-root node would be at index 1 or 2, depending on the context.
 
 ## Binary Search Tree
+The [BST README](/dsa/trees%20&%20graphs/README.md) has more info
 |Type        | Insert     | Search     | Delete     |
 |------------|------------|------------|------------|
 |Best Case   | O(1)       | O(1)       | O(1)       |
@@ -26,6 +27,7 @@ This is a place I write common data structures so I can use them in design syste
 - If the tree is unbalanced, then it becomes a linked list and the insert, search and delete become worst case every time
 
 ## Max Heap
+The [Max Heap README](/dsa/heap%20&%20priority%20queue/README.md) has more info
 |Type        | Insert     | Search (Max only)     | Delete     |
 |------------|------------|------------|------------|
 |Best Case   | O(logn)       | O(1)       | O(logn)       |
