@@ -1,5 +1,12 @@
+# Table of Contents
+- [Common Data Structures](#common-data-structures)
+  - [Representing a Tree in a List](#representing-a-tree-in-a-list)
+  - [Binary Search Tree](#binary-search-tree)
+  - [Max Heap](#max-heap)
+  
 # Common Data Structures
 This is a place I write common data structures so I can use them in design systems or coding practice
+
 
 ### Representing a Tree in a List
 - For future examples below, representing a tree in a list is done by using the following rules:

@@ -1,3 +1,5 @@
+# Table of Contents
+- [Heap & Priority Queue](#heap--priority-queue)
 # Heap / Priority Queue
 |Type        | Insert     | Search (Max only)     | Delete     |
 |------------|------------|------------|------------|
