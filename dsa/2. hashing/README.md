@@ -23,14 +23,21 @@ A ***Hash Function $H(x)$*** of something is a function that turns an object fro
         - Since our hash is basically just acting as the random access point to our array
 - The space complexity becomes an issue, because if our hash space is 0-255 then we need to allocate $256 \times keyDataTypeSize$ total memory to our map object
 
+| Operation        | Average Complexity | Worst Case Complexity
+|------------------|--------------------|----------------------|
+| Put              | $O(1)$             | $O(n)$               |
+| Get              | $O(1)$             | $O(n)$               |
+| Delete           | $O(1)$             | $O(n)$               |
+| Traverse (Search for Value)| $O(n)$   | $O(n)$               |
+
 - ***Buckets***
     - The above is mostly true, but it's mostly illustrative, because most of the time a Hash Function $H(x)$ will not correspond 1:1 with array size $n$, and most of the time we wouldn't want our underlying data structure to be of size $n$...it's usually a lot of wasted space
-    - Therefore, most implementations will have an input Domain $D\in\ [0, n] $ 
+    - Therefore, most implementations will have an input Domain $D\in\ [0, n]$ (i.e. our keys can be 0-n), but our corresponding map data structure will be undermined by an array of size $m: m <= n$
+        - Most of the time $m < n$
+        - This means at least 2 of our keys will be in the same bucket, let's say a and d map to the bucket 2
+            - When this happens, if we looked up `map.get(a)` or `map.get(d)`, it would go to the bucket 2, and have to traverse it using `bucket[2][0] == 'd'`, and if not then `bucket[2][1] == 'd'`...
+            - It's typically implemented as a linked list, where we traverse `if curr == key: return else curr = curr.next`
+                - This means, in the absolute worst case when we have 1 single bucket, then our Put, Get, Delete's all degrade to $O(n)$
 
+![Bucket with multiple entries](./images/hash_bucket.png)
 
-| Operation        | Time Complexity |
-|------------------|-----------------|
-| Put              | $O(1)$          |
-| Get              | $O(1)$          |
-| Delete           | $O(1)$          |
-| Traverse (Search for Value)| $O(n)$          |
