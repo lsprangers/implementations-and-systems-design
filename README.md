@@ -1,4 +1,6 @@
 ## Design Systems
+I forgot a lot of this since school - so
+
 Building specific systems based utilizing [Typical Resources](#typical-resources)
 
 Some examples include URL shortener, Youtube, Youtube Search, Top K Heavy Hitters, etc...
