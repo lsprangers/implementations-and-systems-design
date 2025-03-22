@@ -21,6 +21,7 @@
         - [KNN Neighbors](#knn)
     - [Ranking](#ranking-1)
         - [Learn To Rank](#learn-to-rank)
+
 # Search Systems
 Search Systems (also Recommendation systems since we recommend something back) are used for finding relevant content based on a query
 
@@ -30,39 +31,66 @@ Search Systems (also Recommendation systems since we recommend something back) a
 
 All of these things are queries and we'd expect different content to be returned
 
-Youtube will typically return Videos, Google will return almost any content type, and Facebook might return posts
+Youtube will typically return Videos, Google will return almost any content type, App Store would return applications, and Facebook might return posts / users (friends)
 
-# Inverted Indexes
+## Terminology
+- An ***item*** is generally the thing we'd want to recommend
+- A ***user*** uses items and can be recommended items
+    - Users have a history of item usage
+- A ***query*** comes in at some time, usually from a user, and we would recommend items for that query
+    - A query can be considered the general context / information a system uses to make recommendations
+- Recommendation Scenarios:
+    - *Log-On:* When a user logs on and the system will recommend items to them
+    - *Search:* When a user queries for a specific item and we return items based on that query
+    - For each of the types above we will need to *project* the query context into some sort of *embedding space* and ultimately return some sort of Top K item results to the user
+- General architecture:
+    - ***Candidate Generation:*** is where we efficiently distill the entire corpus of items down to a manageable size - this typically has high precision where anything we return is good, but we might have missed some good items in the process
+    - ***Scoring:*** is where we take the distilled space and run large scale heavy computations against the query / user context to decide on the best videos. This step typically has high recall where we will ensure we get every possible candidate the user might find interesting
+    - ***Re-Ranking:*** Takes into account user history and metadata to remove items from scoring that other systems / history have explicitly stated aren't relevant. We wouldn't want to do this in scoring since it would cause lag and we want to keep that system generally abstract. This step also helps us to do experimentation, freshness, and fairness of item retrieval.
+
+# History
+Over time recommendation / search systems have gone through a lot of changes 
+- At first we used inverted indexes for text based lookups of documents which would allow things like webpage lookup on google
+- Over time 
+    - Recommendation systems started to span multiple content types, from videos to other users to generic multimedia, and the systems had to keep up
+    - Companies started to have humongous web scale for items like Amazon, Google, and Facebook
+    - These evolutions led to new search systems that had multiple stages across various content types ***which led systems to converge on Candidate Generation and Scoring over projected embeddings***
+
+Search has started to move away from returning items to returning summaries and question answering live through "GenAI", but in reality this is mostly still based on Transformer models and NLP tasks where we surround it with new context / query information
+
+
+## Inverted Indexes
 [Inverted Indexes](INVERTED_INDEX.md) have been around for a long time, and they built the original search systems we think of. When you hear of "Google indexed my page" or "Google crawled my page" it is referring to a system similar to this
 
 There's many still used today, but for the most part systems require utilizing context, user features / demographics, and many other inputs to help design Search and Recommendation Systems
 
-# Ranking (First Pass At)
-Once we receive documents back from a query there are times where we'd want to rank them and only return the Top K documents or relevant items
+# Scalable, Real Serving Systems
+We'll walk through how serving systems would be architected in the current world
 
-Our sub-document [Ranking](RANKING.md) focuses on all of the Table of Contents info underneath this
-
-[Ranking](RANKING.md) will essentially open up the search world into context, embeddings, and ways to score text compared to each other. This is typically done with comparing an input Query Q to your set of Documents D, maybe including some Context C
-
-Foreshadowing here in the case of Ranking, even with simple architectures like TF-IDF for scoring, we still have 2 general phases for retrieval which is [Candidate Generation](#candidate-generation) and [Ranking](RANKING.md)...we are skipping over candidate generation for now because scoring is easier to think about
-
-This is a "simple" architecture where we shove everything into BLOB storage, but for TFIDF ranking we'd probably keep it in something like a [Distributed KV Store](/design_systems/_typical_reusable_resources/_typical_distributed_kv_store/README.md) so that we have an "offline" phase for batch indexing, and an "online" phase for applications to return data fast and that would be built over a KV store and not BLOB storage
-![General Architecture of TFIDF](./images/inverted_index_tfidf.png)
-
-# Context
-- Context, in the shortest way possible, are features and surrounding items for a Query...it's simply that
-- Context can come in multiple formats:
-    - Context around user who submitted the Query
-    - Context around words for a given Term
-- Features in a Ranking Model will usually be around 3 types, and they mostly include Context
-    - Query Features
-    - Document Features
-    - Query-Document Features
-        - These are the ***most important*** because they describe the relationship between the Query and Document
-
-
-# Real Time Serving Systems
 ## Candidate Generation
+The [Candidate Generation](./CANDIDATE_GENERATION.md) sub-document covers all main areas of candidate generation phase, but in most cases we'll basically be creating the user-item matrices as a batch at some specific time, and then updating it at some cadence as users interact with our service
+
+If we choose to simply use filtering methods then all of the updates and batch creation can be done offline, and if we truly want our recommendations to be as up-to-date as possible we'd have to rerun the WALS update of user-item engagement each time a user uses our service
+
+If we choose DNN, the DNN needs to be ran each time for a specific user to get the output Candidate Generation which leads us into ML Engineering Inference API's
+
+### Embedding Space Updates
+How do we update our embedding space as users use our services?
+
+We would need to capture the user click information as it's happening, and stream that data into a user database or an analytical data warehouse 
+
+### User-Item Matrix Updates
+Once the data is in some sort of processing engine, we'd need to update the specific pointed row-column $r_{ij}$ corresponding to user I on item J. This might be incrementing some usage statistic, upadting metrics on the fly, or something else. This can be apart of *Feature Engineering* pipelines that run on streaming data
+
+The toughest part will be recomputing the user-item embeddings using WALS or SGD, as we'd have to clone the matrix somewhere else or pause updates on it as we created our new latent matrices $U$ and $V$ during [Matrix Factorization](./CANDIDATE_GENERATION.md#matrix-factorization) 
+
+Then as the user returns, we'd have updated embeddings to serve them with
+
+### DNN Updates
+The DNN needs to be ran each time for a specific user to get the output Candidate Generation, and updating the model parameters each time wouldn't be smart so DNN gets retrained as our training data drifts from our User-Item data
+
+The data drift detection can be a separate background feature pipeline in our processing engine, and once there's a significant enough change we can schedule a new model to be trained for inference
+
 ## Ranking
 ## Serving
 

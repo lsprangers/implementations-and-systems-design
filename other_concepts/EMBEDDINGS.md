@@ -16,7 +16,7 @@ Embeddings are dense vector representations of objects - typically we use them f
 - etc...
 
 
-## Categorical Variables
+## Categorical Features
 - ***One-Hot Encoding*** represents orthonormal basis of vectors, and typically is useful for categorical variables but becomes infeasible if we try to use it for text features
 - ***Label Encoding*** is similar to One-Hot Encoding, except we use an incremental ID for each of the categories
 
@@ -36,161 +36,7 @@ Embeddings are dense vector representations of objects - typically we use them f
             - Use when you want to scale the data to a specific range (e.g., [0, 1]).
             - Useful for algorithms that do not assume any specific distribution of the data (e.g., k-nearest neighbors, neural networks).
             - Ensures that all features contribute equally to the model.
-- There are plenty of other ways to treat numeric data as features, but these are two easy and common ways       
-
-## Text Features
-- For sentence embeddings we can typically use Word2Vec --> `SUM(word_embeddings)`, or just Doc2Vec
-- This will mostly be discussed further down with ***Embedding Layers***
-
-## Collaborative Filtering
-Collaborative filtering is a technique used in recommender systems to make predictions about user preferences based on the preferences of similar users or items. It leverages the idea that users who have agreed in the past will agree in the future.
-
-### Types of Collaborative Filtering
-1. **User-Based Collaborative Filtering**:
-   - Recommends items to a user based on the preferences of similar users.
-   - Similarity between users is calculated using metrics such as cosine similarity, Pearson correlation, or Jaccard index.
-
-2. **Item-Based Content Filtering**:
-   - Recommends items to a user based on the similarity between items.
-   - Similarity between items is calculated using metrics such as cosine similarity, Pearson correlation, or Jaccard index.
-
-#### How Collaborative Filtering Works
-- Desire is to predict user preferences based on previous history
-- Set of users $U$
-- Set of items $I$ that are to be recommended to $U$
-- Learn a function, $f(U_i)$ based on the user’s past interaction data $i$ which predicts the likeliness of item $I$ to $U$
-    - Essentially we pull all user interactions, and we start to find users who have interacted in the same way with past items
-        - Compare $f(U_j)$ to $f(U_k)$, and then if they are similar for some historic items, we can assume that $U_k$ and $U_j$ might have the same preferences
-        - If that's the case and $U_k$ enjoyed an item that $U_i$ hasn't seen yet, we should offer it to user $U_i$
-    - How is this done?
-        - We need to be able to find *K Nearest Neighbors* of a user which could be based on:
-            - User-Item relations:
-                - Item rankings
-                - Item usages
-                - Item purchases
-                - etc...
-            - User relations:
-                - User location
-                - User demographic
-                - etc...
-        - Once we have some sort of way to categorize these users, we can start to rank nearest neighbors
-
-- Pros
-    - Able to introduce users to new items
-    - Clean interface / interaction
-    - Can randomly seed user with user demographics
-- Cons
-    - Cold start problem for new items
-    - Sparse datasets that take up a lot of memory
-    - Popular items get a disproportionate amount of attention
-
-#### Collaborative Filtering Algorithm
-Typically has a User-Item Matrix where Users are rows and Items are columns
-***The below matrix is our embeddings, and as far as this page is concerned, that's it!***
-
-\[
-M = \begin{pmatrix}
-    r_{11} & r_{12} & \cdots & r_{1n} \\
-    r_{21} & r_{22} & \cdots & r_{2n} \\
-    \vdots & \vdots & \ddots & \vdots \\
-    r_{m1} & r_{m2} & \cdots & r_{mn}
-\end{pmatrix}
-\]
-
-Where:
-- \( M \) is the user-item matrix.
-- \( r_{ij} \) represents the interaction between user \( i \) and item \( j \).
-- \( m \) is the number of users.
-- \( n \) is the number of items.
-
-- The actual algorithm would just involve taking that matrix and doing Cosine, Jaccard, or basic dot product similarity between the rows
-    - We can also give some [***attention***](#attention) to the current item by using a small weighted masking matrix $m_i$ that represents the similarity from the current item $i$ to all other items $J$, and then for our output we rank items that are more similar higher up (via larger weight via similarity attention score)
-
-Some pseudocode for the actual algorithm to filter a specific user $U_i$, and find their $K$ nearest neighbors:
-```
-max_heap = heap()
-for other_user in users:
-    max_heap.push(
-        struct(
-            calculate_similarity(user_i, other_user),
-            user_i,
-            other_user
-        )
-    )
-
-resp = []
-for _ in range(k):
-    resp.append(max_heap.pop())
-return(resp)
-```
-
-```
-function find_similar_users(user_item_matrix, target_user, K):
-    # Step 1: Calculate similarity between target_user and all other users
-    similarities = []
-    for user in user_item_matrix:
-        if user != target_user:
-            similarity = calculate_similarity(user_item_matrix[target_user], user_item_matrix[user])
-            similarities.append((user, similarity))
-    
-    # Step 2: Sort users by similarity in descending order
-    similarities.sort(key=lambda x: x[1], reverse=True)
-    
-    # Step 3: Select the top K users with the highest similarity
-    similar_users = [user for user, similarity in similarities[:K]]
-    
-    return similar_users
-
-function calculate_similarity(user_vector1, user_vector2):
-    dot_product = sum(a * b for a, b in zip(user_vector1, user_vector2))
-    magnitude1 = sqrt(sum(a * a for a in user_vector1))
-    magnitude2 = sqrt(sum(b * b for b in user_vector2))
-    if magnitude1 == 0 or magnitude2 == 0:
-        return 0
-    return dot_product / (magnitude1 * magnitude2)
-```
-
-
-## Matrix Factorization
-Matrix factorization is a technique used in recommender systems to decompose a large matrix into smaller matrices. This technique is particularly useful for collaborative filtering, where the goal is to predict user preferences for items based on past interactions.
-
-For the above discussion on [Collaborative Filtering](#collaborative-filtering), we noticed one of the Cons was that this was a gigantic matrix and it's difficult to actually run the collaborative filtering algorithm to find similar users...we need a way to get past this
-
-Matrix factorization can help!
-
-### Explanation
-1. **Decomposition**:
-    - Using the Matrix $M_{ui}$ from our discussion in [collaborative filtering algorithm](#collaborative-filtering-algorithm) where the $U$ rows represent Users and the $I$ columns represent Items
-    - [Matrix factorization](https://developers.google.com/machine-learning/recommendation/collaborative/matrix) decomposes the original matrix into two lower-dimensional matrices:
-        - **User Matrix (U)**: $U_{ud}$ Represents latent features of users.
-        - **Item Matrix (V)**: $V_{id}$ Represents latent features of items.
-        - Both of these matrices are based on the dimensions of $M_{ui}$ that get turned into $U_{ud}$ and $V_{id}$
-    - The embeddings learned from decomposing $M$ gives us two new matrices, where the dot product $U_{ud} \cdot I_{id}^T$ gives us an approximation of $M$
-        - To break this down, it means we can have 2 smaller matrices that we can pick and choose row / column pairs from to get the original matrix, which helps us to speed up queries and reduce memory footprint
-    - The product of these two matrices approximates the original matrix.
-
-2. **Latent Features**:
-   - Latent features capture underlying patterns in the data, such as user preferences and item characteristics.
-   - These features are not directly observable but are inferred from the interaction data.
-
-3. **Optimization**:
-   - The decomposition is typically achieved through optimization techniques that minimize the difference between the original matrix and the product of the two lower-dimensional matrices.
-   - Common optimization methods include Singular Value Decomposition (SVD) and Alternating Least Squares (ALS).
-
-### Formula
-Given a user-item interaction matrix \( R \), matrix factorization aims to find matrices \( U \) and \( V \) such that:
-\[
-R \approx U \cdot V^T
-\]
-Where:
-- \( R \) is the original user-item interaction matrix.
-- \( U \) is the user matrix with dimensions \( m \times k \) (where \( m \) is the number of users and \( k \) is the number of latent features).
-- \( V \) is the item matrix with dimensions \( n \times k \) (where \( n \) is the number of items and \( k \) is the number of latent features).
-
-- Weighted Matrix Factorization as an Objective Function is an extension that helps us to incorporate hyperparameters like $w_0$ into Matrix Factorization
-    - This is useful because it helps us to decompose the objective function into 2 specific sums that are easy to compute over sparse matrices - ultimately the calculation of this matrix is how we create our underlying $U$ and $V$ matrices from $M$
-
-$\min_{U, V} \sum_{i=1}^{m} \sum_{j=1}^{n} w_{ij} (r_{ij} - u_i \cdot v_j^T)^2 + w_0 \left( \sum_{i=1}^{m} |u_i|^2 + \sum_{j=1}^{n} |v_j|^2 \right)$
+- There are plenty of other ways to treat numeric data as features, but these are two easy and common ways
 
 # Text Embeddings
 Text Embeddings are one of the harder things to figure out, but there are some standards nowadays
@@ -198,7 +44,8 @@ Text Embeddings are one of the harder things to figure out, but there are some s
 - Training Word2Vec and BERT both involved semi self-supervised training where they take online corpus as input and basically use contextual words $w_{i-k,i+k}$ to try and create an embedding for a current word $w_i$
 - [Word2Vec](#word2vec) was one of the original ideas for text embeddings - it essentially acts as an autoencoder to create ***static embeddings*** for each word in a dictionary
 - [BERT](#bert) on the other hand, through [attention](#attention), can create ***contextual*** embeddings for words, sentences, and entire documents
-- TODO: Current SOTA for embeddings?
+- [GPT](#gpt-3) is an autoregressive transformer model in the same transformer "family" as [BERT](#bert), but it is ***unidirectional*** where BERT is ***bidirectional*** (which is constantly repeated in the paper)
+    - GPT is good for text-to-text tasks like question answering, but like BERT we can pull from the middle hidden layers during it's self-attention steps to find word embeddings
 
 ## Word2Vec
 As we said above Word2Vec is essentially a static lookup of words to embeddings, and so ***Word2Vec is an embedding model***
@@ -248,7 +95,7 @@ As we said above Word2Vec is essentially a static lookup of words to embeddings,
 - The Skip Gram architecture will use the current word to predict some surrounding context of words
 - The current word is sent through a `log-linear classifier` into a continuous projection layer, and then they projection layer is used to predict the best potential context words
     - ***This still! means there is no context involved, and that the surrounding words are simply predicted without specifying placement***
-- ***Training Objective:*** Predict some $C : C <= N$ surrounding context words from the current word, and then pick, randomly, $C$ words from the $N$ context words
+- ***Training Objective:*** Predict some $C : C \leq N$ surrounding context words from the current word, and then pick, randomly, $C$ words from the $N$ context words
     - Since more distant words *are most likely more unrelated* to the current word, we reduce computational complexity by sampling from those words less frequently
     - There's no other way to give less weight to other "far away" words other than sampling them less and updating weights less often based on them
 - ***Time Complexity:*** Would be $TC = C \times D + C \times D \times log_2(V) === C \times (D + D \times log_2(V))$ 
@@ -451,7 +298,36 @@ Why does this work?
 ### BERT Sentence Embeddings
 - Taking the above example, the typical way to get sentence embeddings is to `SUM` or `AVG` the second to last hidden state for each token in the sentence to achieve a sentence embedding
 
-## Facebook User
-### Click Data
+# Vector Similarities
+Vector similarities are useful for comparing our final embeddings to others in search space
 
-## Attention
+## Cosine
+Cosine similarity will ultimately find the angle between 2 vectors
+$\text{cosine similarity}(A, B) = \frac{A \cdot B}{|A| |B|}$
+
+- Where
+    - $( A \cdot B )$ is the dot product of vectors $( A )$ and $( B )$.
+    - $( |A| )$ and $( |B| )$ are the magnitudes (or Euclidean norms) of vectors $( A )$ and $( B )$
+        - Therefore, magnitude has no effect on our measurement, and we only check angle between vectors
+- Cosine similarity ranges from $[-1, 1]$ where:
+    - 1 indicates they're overlapping and pointing in the exact same direction
+    - 0 indicates they're fully orthonormal (right angle) with 0 overlap over any dimensions
+    - -1 indicates they're pointing in exactly opposite directions
+
+
+## Dot
+The Dot product is similar to the Cosine product, except it doens't ignore the magnitude
+
+$dot(a, b) = \sum_{i=1}^v a_ib_i = {|A| |B|}cosine(a,b)$ 
+
+Which basically means we just compare each item over each dimension. If $a, b$ are normalized then Dot is equivalent to Cosine
+
+## Euclidean
+This is the typical distance in euclidean space
+
+$euclidean(a, b) = [\sum_{i=1}^v (a_i \times b_i)^2]^{1/2}$ 
+
+Here magnitude matters, and a smaller distance between vector end-points means a smaller overall distance metric
+
+# Attention
+Left this for the end because it's such a longstanding discussion, and encompasses so much information. Attention is ultimately the concept that allows Transformers to create contextual embeddings

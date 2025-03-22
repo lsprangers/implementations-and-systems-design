@@ -4,12 +4,6 @@ class UnionFind:
         self.rank = [1] * size
         return
     
-    def setupUnionFind(self, points):
-        for idx, pt in enumerate(points):
-            self.root[idx] = idx
-            self.rank[idx] = idx
-        return
-    
     def find(self, pt):
         if(pt == self.root[pt]):
             return(pt)
@@ -17,7 +11,7 @@ class UnionFind:
         
         return(self.root[pt])
     
-    def union(self, pt1, pt2):
+    def union(self, pt1, pt2) -> bool:
         root1 = self.find(pt1)
         root2 = self.find(pt2)
         if(root1 != root2):
@@ -31,6 +25,9 @@ class UnionFind:
                 # merge second under first, and update it's rank
                 self.root[root2] = root1
                 self.rank[root1] += 1
+            
+            return True
+        return False
                 
     
     def connected(self, pt1, pt2):

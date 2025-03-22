@@ -1,3 +1,6 @@
+# This Repo
+This entire repo is just a dump of a bunch of things I've read and wanted to write down somewhere other than a MS Word file - as many reference links as I can remember are at the bottom
+
 ## Design Systems
 I forgot a lot of this since school - so
 
@@ -8,24 +11,23 @@ Some examples include URL shortener, Youtube, Youtube Search, Top K Heavy Hitter
 ### Typical Resources
 These are discussions and implementations of "typical" resources like distributed KV store, front end load balancer + metadata, distributed queue, etc...
 
+## DSA
+Just general Data Structures and Algorithms and their implementations, time /space complexities, and general use cases
+
+## Other Concepts
+These are generic concepts that don't fit into the other buckets - things like Embeddings, Parallel Training designs, Pregel Graph Traversals, etc...
+
 ## Implementations
 This is a folder of generic implementations of things like
 - "A Key Value store with transactions"
 - "A balanced binary search tree from scratch"
 - "ML feature store architecture diagram"
 
-### KV Store with Transactions
-- Just set one up from a challenge I saw on LeetCode
-    - Getting the operations to all be O(1) is relatively easy, but the next 
-        parts of the implementation would be multi-threading
-    - Goes hand in hand with the RAFT repository where we show how to create a strongly
-        consistent RAFT cluster to back a distributed, sharded, KV Store
-
-### Deque
--  Creating a deque from linked lists, and doing things like sorting, traversal, etc...
-
-### Merge Sort
-- Following from needing merge sort in deque sort just implemented it here
-
 ## Leet
 This is just a dump of leetcode problems and comments
+
+## References
+- [Leetcode](https://leetcode.com)
+- [Google ML Rec Systems](https://developers.google.com/machine-learning/recommendation)
+- [Hello Interview](https://www.hellointerview.com)
+- [Programiz](https://www.programiz.com)
