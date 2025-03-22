@@ -178,6 +178,12 @@ A key property is ***acyclic*** meaning there are no cycles in the graph! It wou
 
 The main algorithm for this is ***Kahn's Algorithm*** where we will basically iterate over all vertexes that have `indegree = 0`, and do something with them, and then decrement their downstream vertexes. This ultimately creates "levels" where multiple classes or jobs could be ran at the same time, and once they're all done we should be ready for our downstream vertexes (decrement indegree)
 
+Since we are only iterating over edges and vertexes and doing increment / decrement, our space and time complexities are $O(V + E)$
+
+| Time Complexity    | Space Complexity   |
+|--------------------|--------------------|
+| $O(V + E)$         | $O(V + E)$         |
+
 ## Graphs In the Wild
 
 ### Storage 
