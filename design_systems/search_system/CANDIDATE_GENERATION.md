@@ -1,5 +1,16 @@
 # Table of Contents
-TODO
+- [Candidate Generation](#candidate-generation)
+  - [User-Item Matrices](#user-item-matrices)
+  - [Similarity](#similarity)
+- [Filtering Mechanisms](#filtering-mechanisms)
+    - [Item Content Filtering](#item-content-filtering)
+    - [User-Item Collaborative Filtering](#user-item-collaborative-filtering)
+        - [How Collaborative Filtering Works](#how-collaborative-filtering-works)
+        - [Collaborative Filtering Algorithm](#collaborative-filtering-algorithm)
+  - [Matrix Factorization](#matrix-factorization)
+    - [Explanation](#explanation)
+    - [Weighted Matrix Factorization](#weighted-matrix-factorization)
+- [DNN For Candidate Generation](#dnn-for-candidate-generation)
 
 # Candidate Generation
 The reason candidate generation is so useful, is because it typically allows us to reduce our search space from the entire corpus, typically petabytes in size, to a searchable susbscape of typically hundreds or thousands of items

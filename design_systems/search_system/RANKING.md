@@ -8,19 +8,38 @@
     - [Graph](#graph)
         - [Page Rank](#page-rank)
     - [Embeddings](#embeddings)
-      - [Vector Space Model](#vector-space-model)
-      - [Neural Models](#neural-models)
-        - [BERT](#bert)
-    - [Hybrid Models](#hybrid-models)
 
 # Ranking
 Ranking queries to items is a fairly large part of a search system, otherwise you're just returning a big list of documents when some might be much more relevant to user
+
+Ranking is typically the second stage of a recommender system, and sometimes it's ***online*** meaning a new ranking calculations per query, ***offline*** where we can calculate results and look them up per query, or somewhere inbetween 
+
+Ranking is typically used for experiments, explainable results, or something different that we want to calculate specifically on each Item that might be more resource intensive than Candidate Generation methods, and other systems will combine everything into one single API call and bypass the different layers
+
+- Ranking methods can take features of queries, documents, and their interactions as input to predict a relevance score for each document
+  - Features might include:
+    - Query-Document similarity (e.g., cosine similarity, TF-IDF, BM25)
+    - Document-specific features (e.g., PageRank, click-through rate)
+    - Query-specific features (e.g., query length, query type)
+    - Contextual features (e.g., user location, device type)
+
+- Example:
+  - Query: "Best laptops under $1000"
+  - Document Features:
+    - Price: $900
+    - Brand popularity: High
+    - User reviews: 4.5/5
+  - Query-Document Features:
+    - BM25 score: 1.2
+    - Query terms in title: 2/3
+
+----
 
 ## Count Based Heuristics
 One of the most common ranking / scoring methodologies is using the uniqueness of a word based on specific counts (heuristics) - the word "and" is not very unique, and if it shows up in a document we won't really care. Another word like "aardvark" is fairly unique and not used that often, so it would be more unique
 
 ### TF-IDF
-TF-IDF means Term Frequency Inverse Document Frequency, and it's a fairly simple scoring mechanism for computing the uniqueness of a Term (word) across Documents 
+TF-IDF means Term Frequency Inverse Document Frequency, and it's a fairly simple scoring mechanism for computing the uniqueness of a Term (word) across Documents. Most of the calculations are done offline, and for a query we use our lookup table to find Documents.
 
 - **TF (Term Frequency)**: The count of a term in a specific document.
 - **IDF (Inverse Document Frequency)**: The logarithm of the total number of documents divided by the number of documents that contain the term.
@@ -42,7 +61,13 @@ High       | Low           | This word is rare throughout the other documents, b
 ### BM25
 - ***Description***: An extension of TF-IDF that considers term frequency saturation and document length normalization.
 - ***Formula***: 
-  $text{BM25}(D, Q) = \sum_{i=1}^{n} IDF(q_i) \cdot \frac{f(q_i, D) \cdot (k_1 + 1)}{f(q_i, D) + k_1 \cdot (1 - b + b \cdot \frac{|D|}{\text{avgdl}})} ]$ where $( f(q_i, D) )$ is the term frequency of $( q_i )$ in document $( D )$, $( |D| )$ is the length of the document, $( \text{avgdl} )$ is the average document length, and $( k_1 )$ and $( b )$ are parameters.
+$text{BM25}(D, Q) = \sum_{i=1}^{n} IDF(q_i) \cdot \frac{f(q_i, D) \cdot (k_1 + 1)}{f(q_i, D) + k_1 \cdot (1 - b + b \cdot \frac{|D|}{\text{avgdl}})}$ 
+  - $ f(q_i, D) $ is the term frequency of $( q_i )$ in document $( D )$
+  - $ |D| $ is the length of the document
+  - $ \text{avgdl} $ is the average document length
+  - $ k_1 $ and $ b $ are parameters
+
+-----
 
 ## Probabilistic Models
 - Probabilistic Models estimate the likelihood of a query given a document! $P(Query | Document)$ 
@@ -69,10 +94,31 @@ High       | Low           | This word is rare throughout the other documents, b
       \]
   - And then you get the Probability of a Document for each Term, and when your Query comes in it's simply a bunch of terms strung together so you'd find the top Documents for each Term in the Query and Rank the result set
 
-  
+### Decision Trees
+We cover [Decision Trees](../../other_concepts/DECISION_TREES.md) in depth elsewhere, but they are useful for taking many of our Document, Query-Document, and User features into consideration when we want to predict some general category, but they can't really be used on predicting specific videos
+
+Decision Tree's roles are typically to predict relevance scores (pointwise) or to optimize ranking orders based on features (listwise). We can incorporate them in [Learning To Rank](#learn-to-rank) to optimize ranking orders
+- Pointwise:
+  - Treats ranking as a regression or classification problem.
+  - Each document is scored independently, and the scores are used to rank the documents.
+  - Example: Predicting a relevance score for each video in a search result.
+- Pairwise:
+  - Optimizes the relative ordering of document pairs.
+  - The model learns to predict which document in a pair is more relevant.
+  - Example: Comparing two videos and predicting which one should rank higher.
+- Listwise:
+  - Directly optimizes the ranking of a list of documents.
+  - The model learns to minimize a loss function that quantifies the quality of the entire ranking.
+- Example: Optimizing the ranking of a list of videos for a query.
+- Offline Training:
+  - Decision trees are typically trained offline using labeled data, where each query-document pair has a relevance label (e.g., 1 for relevant, 0 for irrelevant)
+  - Once trained, the model can be used online to rank documents for new queries
+
+### Logistic Regression
+Logistic regression 
 
 ### Learn To Rank
-- A machine learning ***task*** that seeks to train models that rank documents based on features extracted from the documents and queries.
+- A machine learning ***task*** that seeks to train models that rank documents based on features extracted from the documents and queries. Each new query results in a forward pass / inference call, so this would be an online model
   - A classification task is a model whose task is to classify inputs into certain classification buckets, so a Learn To Rank Task is a model whose task is to rank documents based on features extracted from documents
 - A Learning to Rank task is when your input is a set of samples, all with their given features, but the aim is to build a model that outputs a ranking in terms of their relevancy
   - Therefore *the output is a ranking of input samples*
@@ -109,29 +155,35 @@ High       | Low           | This word is rare throughout the other documents, b
   - **Listwise**: Directly optimizes the ranking of a list of documents.
     - Listwise takes Pairwise a step further and directly quantifies the extent of the incorrect rankings, and then updates the weights accordingly via specified loss
 
+---
 
 ## Graph
-I can really only think of PageRank off the top of my head, and in PageRank the Features are taken from a graph linkage structure, but it doesn't need to be ran on a graph engine
+I can really only think of PageRank off the top of my head, and in PageRank the Features are taken from a graph linkage structure, but it doesn't need to be ran on a graph engine. Most of the time we calculate PageRank scores offline, and then for a specific query we use PageRank as a feature along with other ranking mechanisms. 
+
+Page Rank simply helps us calculate "page importance", but we still need to compare a query to web page terms and themes by doing lookups based on [Document and Query Embedding Similarity](../../other_concepts/EMBEDDINGS.md#embeddings)
 
 ### Page Rank
-An algorithm used by Google Search to rank web pages. It measures the importance of a page based on the number and quality of links to it.
-- **Formula**:
-  \[
-  PR(A) = (1 - d) + d \left( \frac{PR(T1)}{C(T1)} + \frac{PR(T2)}{C(T2)} + \ldots + \frac{PR(Tn)}{C(Tn)} \right)
-  \]
-  where \( d \) is the damping factor, \( PR(Ti) \) is the PageRank of page \( Ti \), and \( C(Ti) \) is the number of outbound links on page \( Ti \).
+An algorithm used by Google Search to rank web pages. It measures the importance of a page based on the number and quality of links to it. PageRank can be used anywhere, not just in Ranking, but makes sense to put it here
 
-## Embeddings
-## Vector Space Model
-- **Description**: Represents documents and queries as vectors in a multi-dimensional space. The relevance of a document to a query is determined by the cosine similarity between their vectors.
-- **Cosine Similarity**: Measures the cosine of the angle between two vectors. A smaller angle (higher cosine value) indicates higher similarity.
-- **Formula**: $ \text{cosine\_similarity}(A, B) = \frac{A \cdot B}{\|A\| \|B\|}$
+It outputs a probability distribution used to represent the likelihood that a person will arrive at any particular page through clicking on random links, similar to probability distribution of the "Wikipedia game" where to try to get to Page B from Page A by visiting referenced links starting at A
 
-## Neural Models
-- **Description**: Uses deep learning models to rank documents. These models can capture complex patterns and relationships in the data.
-- **Examples**: BERT-based ranking models, DSSM (Deep Structured Semantic Model), and DRMM (Deep Relevance Matching Model).
+PageRank can be solved using iterations and traversing web links using the ***power iteration method***, but it can also be solved analytically if we had an adjacency matrix of all links between pages $M$, where $M[i][j]$ represents the link from page $j$ to page $i$
 
-### BERT
+- **Analytical Formula**:
+  - The PageRank vector $PR$ satisfies the equation: $PR = d \cdot M \cdot PR + (1 - d) \cdot v$ where:
+    - $d$ is the damping factor (typically ( 0.85 )).
+    - $v$ is a personalization vector (often uniform, representing equal probability of jumping to any page).
+    - Rearranging: $PR = (I - d \cdot M)^{-1} \cdot (1 - d) \cdot v$
+    - Here, $I$ is the identity matrix, and $(I - d \cdot M)^{-1}$ is the inverse of $I - d \cdot M$.
+  - This provides an exact solution for PageRank, but computing the inverse of a matrix is computationally expensive for large graphs, making this approach impractical for real-world web-scale graphs.
+- **Iterative Formula**:
+  - Start with an initial $PR[n]$ vector of size $N$ initialized uniformly $PR[0] = \frac{1}{N}$
+  - At each step $k$ calculate the $PR$ vector $ PR[k+1] = d \cdot M \cdot PR[k] + (1 - d) \cdot v $
+  - Repeat this until the difference between successive iterations is below a small enough threshold, $\epsilon$, in total so $| PR[k+1] - PR[k] | < \epsilon$
+  - Another way to calculate $PR[A]$ without matrix inversion would be to traverse in-nodes
+    - $PR(A) = (1 - d) + d \left( \frac{PR(T_1)}{C(T_1)} + \frac{PR(T_2)}{C(T_2)} + \ldots + \frac{PR(T_n)}{C(T_n)} \right)$ 
+      - $d$ is the damping factor, 
+      - $PR(T_i)$ is the PageRank of page $T_i$ and 
+      - $C(T_i)$ is the number of outbound links on page $T_i$
 
-## Hybrid Models
-- **Description**: Combines multiple ranking mechanisms to leverage their strengths. For example, combining TF-IDF with PageRank to consider both content relevance and link structure.
+The iterative approach using sum over in-nodes is typically preferred for large graphs because it avoids the computational cost of matrix inversion, and reduces amount that needs to be stored
