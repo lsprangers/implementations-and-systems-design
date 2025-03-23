@@ -9,6 +9,9 @@
         - [Page Rank](#page-rank)
     - [Embeddings](#embeddings)
 
+
+TODO: A lot of these are offline, and some are online, and the Ranking section should actually discuss Ranking + Scoring
+
 # Ranking
 Ranking queries to items is a fairly large part of a search system, otherwise you're just returning a big list of documents when some might be much more relevant to user
 
@@ -115,7 +118,7 @@ Decision Tree's roles are typically to predict relevance scores (pointwise) or t
   - Once trained, the model can be used online to rank documents for new queries
 
 ### Logistic Regression
-Logistic regression 
+TODO: Logistic regression 
 
 ### Learn To Rank
 - A machine learning ***task*** that seeks to train models that rank documents based on features extracted from the documents and queries. Each new query results in a forward pass / inference call, so this would be an online model

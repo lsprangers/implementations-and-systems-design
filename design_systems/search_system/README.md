@@ -1,26 +1,22 @@
 # Table of Contents
 - [Search Systems](#search-systems)
-- [Inverted Index](#inverted-indexes)
-- [Ranking & Comparing](RANKING.md#ranking-first-pass-at)
-    - [Count Based Heuristics](RANKING.md#count-based-heuristics)
-    - [Probabilistic Models](RANKING.md#probabilistic-models)
-    - [Graph](RANKING.md#graph)
-    - [BERT](RANKING.md#bert)
-- [Context & Embeddings](#context)
-    - [Embeddings](../../other_concepts/EMBEDDINGS.md#embeddings)
-        - [Collaborative Filtering](../../other_concepts/EMBEDDINGS.md#collaborative-filtering)
-        - [Matrix Factorization](../../other_concepts/EMBEDDINGS.md#matrix-factorization)
-        - [Attention](../../other_concepts/EMBEDDINGS.md#attention)
-- [Real Time Serving Systems](#real-time-serving-systems)
-    - [Candidate Generation](#candidate-generation)
-    - [Ranking](#ranking)
-    - [Serving](#serving)
-- [Youtube DNN Paper + Discussion](#youtube-dnn-system)
-    - [Candidate Generation](#candidate-generation-1)
-        - [User Embeddings](#user-embeddings-1)
-        - [KNN Neighbors](#knn)
-    - [Ranking](#ranking-1)
-        - [Learn To Rank](#learn-to-rank)
+- [Terminology](#terminology)
+- [History](#history)
+  - [Inverted Indexes](#inverted-indexes)
+- [Scalable, Real Serving Systems](#scalable-real-serving-systems)
+  - [Candidate Generation](#candidate-generation)
+    - [Embedding Space Updates](#embedding-space-updates)
+    - [User-Item Matrix Updates](#user-item-matrix-updates)
+    - [DNN Updates](#dnn-updates)
+  - [Retrieval](#retrieval)
+    - [KNN](#knn)
+  - [Scoring](#scoring)
+  - [Reranking](#reranking)
+- [Conclusion](#conclusion)
+- [Youtube DNN System](#youtube-dnn-system)
+  - [Candidate Generation](#candidate-generation-1)
+  - [Ranking](#ranking)
+    - [Learn To Rank](#learn-to-rank)
 
 # Search Systems
 Search Systems (also Recommendation systems since we recommend something back) are used for finding relevant content based on a query
@@ -31,6 +27,8 @@ Search Systems (also Recommendation systems since we recommend something back) a
 
 All of these things are queries and we'd expect different content to be returned
 
+For a further look at [Embeddings](../../other_concepts/EMBEDDINGS.md#embeddings) check out the sub-document
+
 Youtube will typically return Videos, Google will return almost any content type, App Store would return applications, and Facebook might return posts / users (friends)
 
 ## Terminology
@@ -39,14 +37,15 @@ Youtube will typically return Videos, Google will return almost any content type
     - Users have a history of item usage
 - A ***query*** comes in at some time, usually from a user, and we would recommend items for that query
     - A query can be considered the general context / information a system uses to make recommendations
+- An ***[embedding](../../other_concepts/EMBEDDINGS.md#embeddings)*** is a way to create numeric representations of items, users, and queries which help us in the steps below
 - Recommendation Scenarios:
     - *Log-On:* When a user logs on and the system will recommend items to them
     - *Search:* When a user queries for a specific item and we return items based on that query
     - For each of the types above we will need to *project* the query context into some sort of *embedding space* and ultimately return some sort of Top K item results to the user
 - General architecture:
     - ***Candidate Generation:*** is where we efficiently distill the entire corpus of items down to a manageable size - this typically has high precision where anything we return is good, but we might have missed some good items in the process
-    - ***Scoring:*** is where we take the distilled space and run large scale heavy computations against the query / user context to decide on the best videos. This step typically has high recall where we will ensure we get every possible candidate the user might find interesting
-    - ***Re-Ranking:*** Takes into account user history and metadata to remove items from scoring that other systems / history have explicitly stated aren't relevant. We wouldn't want to do this in scoring since it would cause lag and we want to keep that system generally abstract. This step also helps us to do experimentation, freshness, and fairness of item retrieval.
+    - ***Retrieval and Scoring:*** is where we take the distilled space and run large scale heavy computations against the query / user context to decide on the best videos. This step typically has high recall where we will ensure we get every possible candidate the user might find interesting
+    - ***Re-Ranking:*** Takes into account user history, current trends, and other policies we might want to have included in our system that change more quickly. Typical policies include pirated content, child restrictions, user personalization, and clickbait removes, among many other policies. We woudln't want to include all of this in our generic candidate generation or ranking steps since it'd ultimately cause heavy retraining and recomputing of our Embedding Space
 
 # History
 Over time recommendation / search systems have gone through a lot of changes 
@@ -91,8 +90,57 @@ The DNN needs to be ran each time for a specific user to get the output Candidat
 
 The data drift detection can be a separate background feature pipeline in our processing engine, and once there's a significant enough change we can schedule a new model to be trained for inference
 
-## Ranking
-## Serving
+## Retrieval
+Given a user coming online, or a query being submitted, how do we actually obtain a set of items to present? This is the main focus of Retrieval and Scoring, sometimes called Ranking, and there are even some Re-Ranking steps involved...
+
+For a [Matrix Factorization](../../other_concepts/EMBEDDINGS.md#matrix-factorization) technique, we'd have the static embeddings sitting in an API or on disk somewhere for us to look up at query time. We can simply look things up from the User Embedding Matrix to get our query embedding $q_u$
+
+For a DNN model we need to run an inference forward-pass to compute the query embedding at query time by using the weights that were trained from [DNN Updates](#dnn-updates) $q_u = \phi(u)$
+
+### KNN
+Once we have our query embedding $q_u$ we need need to search for the Top K Nearest Neighbors (KNN) items $V_j$ in the Item Matrix that are closest to $q_u$ - this is typically done with the [Ranking and Scoring](./RANKING.md) algorithms described elsewhere, which help us compute a score $s(q_u \cdot v_j)$ for our query across the Item Embedding Space 
+
+- This is a fairly large and complex thing to do online for each query, but there are ways to alleviate this:
+    - If the query embedding is known statically, the system can perform exhaustive scoring offline, precomputing and storing a list of the top candidates for each query. This is a common practice for related-item recommendation.
+    - Use approximate nearest neighbors. Google provides an open-source tool on GitHub called [ScaNN (Scalable Nearest Neighbors)](https://github.com/google-research/google-research/tree/master/scann). This tool performs efficient vector similarity search at scale
+        - ScaNN using space pruning and quantization, among many other things, to scale up their Inner Product Search capabilities, which basically means they make running Dot Product search very fast, and they also mention support of other distance metrics like Euclidean 
+
+## Scoring
+After Candidate Generation and Retrieval, we need to Score the final set of Items to display to the user
+
+The algorithms described in [Ranking and Scoring](./RANKING.md) can also be used here - it's really a horse a piece and what features you put into each and the objective function they're trained to "solve"
+
+- Typical Scoring features / policies:
+    - Geographic closeness for things like Restaurants and Bars
+    - User account features for personalization
+    - Popular or trending items for the day
+
+This is typically done using heavier models, and / or new features & policies, to create a finalized list to present to the user
+
+Heavier models would include things like DNN predicted user watch time of each video (item) from the final Candidate Generation list. In this case we could have a DNN for Candidate Generation over our entire corpus, and then another DNN with more hidden layers and features to predict watch time for each video, but some systems just combine these into one for latency requirements
+
+Why do we split Candidate Generation from Ranking?
+- Some systems don't!
+- Some systems use multiple Candidate Generation models
+- Some Ranking models use heavier sets of features or heavier models that can't run over the entire corpus
+
+## Reranking
+This final part of the model is to mostly filter out items that may have made it through and aren't useful...these reranking models are much more dynamic and trained on "current issues" like pirated sports streams or child restriction content which could change much faster than our generic ranking systems need to
+
+Typical examples include:
+- Clickbait videos
+- Overtrending videos
+- Videos that may not be part of a specific experiment
+- Child restrictions
+- Piracy restrictions
+- etc....
+
+It's just another way to pick down at the final list to make sure it's useful
+
+## Conclusion
+Discussing Candidate Generation, Ranking, Retrieval, Scoring, and Reranking might be confusing and repetitive, but in reality all of these components can and do make up recommender systems. In most scenarios the algorithms discussed are used in possibly all steps, and some systems have multiple models of each type (for example multiple Candidate Generation and Reranking models) which all support creating and whittling away at a finalized recommendation list
+
+This is all important because we want to engage users with relevant content without "being evil" - showing trending videos, clickbait videos, or pirated sports streams is hard to combat without all of this context, and at some points we don't want to include all of that logic in our ranking and scoring. The decision on which model to place where and for what reason is what makes up our recommendation sytem's choices
 
 # Youtube DNN System
 [Paper Link](https://static.googleusercontent.com/media/research.google.com/en//pubs/archive/45530.pdf)
@@ -107,8 +155,6 @@ So what could Youtube use in it's recommender system?
 - The actual DNN is a non-linear generalization of matrix factorization techniques
     - This basically means they used to use matrix factorization techniques, and the DNN means to mimic that, but DNN's are more flexible (non-linear)
     - They mention the CGeneration task is extreme classification
-### User Embeddings
-### KNN
 
 ## Ranking
 - Ranking will take the output of Candidate Generation, which is high precision, and will create a fine-level representation for the user 

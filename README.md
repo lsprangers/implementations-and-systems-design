@@ -11,6 +11,9 @@ Some examples include URL shortener, Youtube, Youtube Search, Top K Heavy Hitter
 ### Typical Resources
 These are discussions and implementations of "typical" resources like distributed KV store, front end load balancer + metadata, distributed queue, etc...
 
+## Databases and Storage
+Discusses different SQL and NoSQL architectures / products including Relational Databases, NoSQL KV storage, Blob Storage, and Data Warehousing Solutions
+
 ## DSA
 Just general Data Structures and Algorithms and their implementations, time /space complexities, and general use cases
 
@@ -25,6 +28,9 @@ This is a folder of generic implementations of things like
 
 ## Leet
 This is just a dump of leetcode problems and comments
+
+## Messaging
+Discuss how to send messages between services via Queues, Brokers, and PubSub systems
 
 ## References
 - [Leetcode](https://leetcode.com)
