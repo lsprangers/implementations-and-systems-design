@@ -1,6 +1,10 @@
 # 📚 This Repo
 
-This repository is a collection of notes, implementations, and concepts I've gathered over time. It's a mix of **Data Structures and Algorithms (DSA)**, **System Design**, **Machine Learning concepts**, and more. Think of it as a structured dump of everything I've read and wanted to document outside of a Word file.
+This repository is a collection of notes, implementations, and concepts I've gathered over time. 
+
+It's a mix of **Data Structures and Algorithms (DSA)**, **System Design**, **Machine Learning concepts**, and more. 
+
+Think of it as a structured dump of everything I've read and wanted to document outside of a Word file.
 
 ---
 
