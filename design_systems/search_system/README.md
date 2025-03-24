@@ -3,6 +3,7 @@
 - [Terminology](#terminology)
 - [History](#history)
   - [Inverted Indexes](#inverted-indexes)
+  - [Embeddings](#embeddings)
 - [Scalable, Real Serving Systems](#scalable-real-serving-systems)
   - [Candidate Generation](#candidate-generation)
     - [Embedding Space Updates](#embedding-space-updates)
@@ -62,6 +63,17 @@ Search has started to move away from returning items to returning summaries and 
 [Inverted Indexes](INVERTED_INDEX.md) have been around for a long time, and they built the original search systems we think of. When you hear of "Google indexed my page" or "Google crawled my page" it is referring to a system similar to this
 
 There's many still used today, but for the most part systems require utilizing context, user features / demographics, and many other inputs to help design Search and Recommendation Systems
+
+
+## Embeddings
+[Embeddings](../../other_concepts/EMBEDDINGS.md#embeddings) are a way to create dense, numeric representations, that can have geometric operations like subtraction, addition, and "closeness", performed on them
+
+- Types:
+    - [Word Embeddings](../../other_concepts/EMBEDDINGS.md#bert-word-embeddings) are how we turn words into vectors, and was the start of most embedding models...everything changed when we started to use [attention](../../other_concepts/EMBEDDINGS.md#attention)
+    - [Sentence Embeddings](../../other_concepts/EMBEDDINGS.md#bert-sentence-embeddings) are basically just aggregations of word embeddings, but things get a bit tricky and we start using multiple hidden layers
+    - [Document Embeddings](../../other_concepts/EMBEDDINGS.md#bert-sentence-embeddings) are basically just concatenated or aggregated sentence embeddings
+    - [User Embeddings](../../other_concepts/EMBEDDINGS.md#user-embeddings) are typically created using User-Item interactions, along with other features like demographics, click through data, or history
+    - We can create embeddings for almost anything, but at the end of the day the embeddings need to make sense for what we want to do, which is typically find "similar" things, or find geometric interpretations of "things" like Paris is to France as Berlin is to Germany
 
 # Scalable, Real Serving Systems
 We'll walk through how serving systems would be architected in the current world

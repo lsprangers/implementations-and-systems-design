@@ -1,5 +1,54 @@
 # Table of Contents
-TODOS
+- [Embeddings](#embeddings)
+  - [History](#history)
+  - [Categorical Features](#categorical-features)
+  - [Numeric Features](#numeric-features)
+- [Text Embeddings](#text-embeddings)
+  - [Word2Vec](#word2vec-1)
+    - [Training and Output](#training-and-output)
+    - [Model Architecture](#model-architecture)
+      - [Continuous Bag of Words Architecture](#continuous-bag-of-words-architecture)
+      - [Continuous Skip Gram Architecture](#continuous-skip-gram-architecture)
+    - [Evaluation of Model](#evaluation-of-model)
+  - [BERT](#bert)
+    - [Training](#training)
+      - [Base Models](#base-models)
+        - [Base Model Architecture](#base-model-architecture)
+        - [Masked Language Modeling Architecture](#masked-language-modeling-architecture)
+        - [Next Sentence Prediction Architecture](#next-sentence-prediction-architecture)
+      - [Extending Base Models](#extending-base-models)
+        - [Fine Tuning Architecture](#fine-tuning-architecture)
+        - [Fine Tuning Examples](#fine-tuning-examples)
+    - [BERT Word Embeddings](#bert-word-embeddings)
+    - [BERT Sentence Embeddings](#bert-sentence-embeddings)
+- [Attention](#attention)
+  - [Self Attention](#self-attention)
+    - [Example](#example)
+    - [How Self Attention Works](#how-self-attention-works)
+    - [Key, Query, and Value Matrices](#key-query-and-value-matrices)
+    - [Multi-Head Attention](#multi-head-attention)
+    - [Positional Encoding](#positional-encoding)
+    - [Residual Connections and Normalization](#residual-connections-and-normalization)
+    - [Summary of Self Attention](#summary-of-self-attention)
+    - [Context Size and Scaling Challenges](#context-size-and-scaling-challenges)
+  - [Encoder-Decoder Attention](#encoder-decoder-attention)
+    - [How Encoder-Decoder Attention Works](#how-encoder-decoder-attention-works)
+    - [Transformer Architecture for Encoder-Decoder Attention](#transformer-architecture-for-encoder-decoder-attention)
+    - [Key Differences from Self Attention](#key-differences-from-self-attention)
+    - [Training and Loss](#training-and-loss)
+    - [Visual Representation](#visual-representation)
+    - [Summary of Encoder-Decoder Attention](#summary-of-encoder-decoder-attention)
+- [User Embeddings](#user-embeddings)
+- [Embeddings vs Autoencoder vs Variational Autoencoder](#embeddings-vs-autoencoder-vs-variational-autoencoder)
+  - [Embeddings](#embeddings-1)
+  - [Autoencoder](#autoencoder)
+  - [Variational Autoencoder (VAE)](#variational-autoencoder-vae)
+  - [Comparison and When to Choose](#comparison-and-when-to-choose)
+- [Vector Similarities](#vector-similarities)
+  - [Cosine](#cosine)
+  - [Dot](#dot)
+  - [Euclidean](#euclidean)
+
 
 # Embeddings
 Embeddings are dense vector representations of objects - typically we use them for Documents, Queries, Users, Context, or Items...but they can really be used to represent ***anything***
@@ -298,6 +347,346 @@ Why does this work?
 ### BERT Sentence Embeddings
 - Taking the above example, the typical way to get sentence embeddings is to `SUM` or `AVG` the second to last hidden state for each token in the sentence to achieve a sentence embedding
 
+# Attention
+Attention is what separates static embeddings from dynamic embeddings - they allow word embeddings to be updated, aka attended to, by the contextual words surrounding them
+
+Attention stemmed from NLP Seq2Seq Tasks like next word prediction, and translation where using the surrounding context of the word was one of the major breakthroughs in achieving better Seq2Seq results
+
+We need to remember that the embedding for "bank" *is always the same Embedding in the Metric Space* in these scenario's, but by attending to it with Attention, we can change it's position! It's as simple as that, so at the end of attending to the vector, the vector for bank in river bank may point in a completely different direction than the vector for bank in bank vault - just because of how the other words add or detract from it geometrically in its Metric Space. Bank + having river in sentence moves vector in matrix space closer to a sand dune, where Bank + teller in sentence moves it closer to a financial worker
+
+How is this done? Attention mechanisms in our DNN models. There are multiple forms of Attention including Self Attention, Encoder-Decoder Attention, and Bahdanau Attention - each of them help to attend to a current query word / position based on it's surroundings. A single head of this Attention mechanism would only update certain "relationships", or attended to geometric shifts, but mutliple different Attention mechanisms might be able to learn a dynamic range of relationships
+
+All of these Attention mechanisms are tunable matrices of weights - they are learned and updated through the model training process, and it's why we need to "bring along the model" during inference...otherwise we can't use the Attention!
+
+## Self Attention
+
+Self Attention is a mechanism that uses context words (**Keys**) to update the embedding of a current word (**Query**). It allows embeddings to dynamically adjust based on their surrounding context.
+
+### Example
+Consider the phrase "fluffy blue creature." The embedding for "creature" is updated by attending to "fluffy" and "blue," which contribute the most to its contextual meaning.
+
+![Fluffy Blue Attention](./images/fluffy_blue_creature.png)
+
+### How Self Attention Works
+TLDR;
+- The Query vector $Q_i$ is the current word
+- The Key vector is an embedding representing every other word $K_j \forall  {j \neq i} $
+    - We multiply the Query by every Key to find out how "similar", or "attended to" each Query should be by each Key $Q_i \cdot K_j$
+- Then we softmax it to find the percentage each Key should have on the Query
+- Finally we multiply that softmaxed representation by the Value vector, which is the input embedding multipled by Value matrix, and ultimately allow each Key context word to attend to our Query by some percentage
+
+[SelfAttention](./images/self_attention.png)
+
+In depth mathematical explanation below
+
+1. **Input Transformation**:
+   - Each input embedding \( x_i \) is transformed into three vectors: **Query (Q)**, **Key (K)**, and **Value (V)**
+   - These are computed by multiplying the input embedding with learned weight matrices:
+     \[
+     q_i = x_i \cdot W_Q, \quad k_i = x_i \cdot W_K, \quad v_i = x_i \cdot W_V
+     \]
+![QKV](./images/qkv.png)
+2. **Attention Calculation**:
+   - **Step 1**: Compute attention scores by taking the dot product of the Query vector \( q_i \) with all Key vectors \( k_j \):
+     \[
+     \text{Score}_{ij} = q_i \cdot k_j
+     \]
+   - **Step 2**: Scale the scores to prevent large values:
+     \[
+     \text{Scaled Score}_{ij} = \frac{\text{Score}_{ij}}{\sqrt{d_k}}
+     \]
+    - Where \( d_k \) is the dimensionality of the Key vectors
+    - As the size of the input embedding grows, so does the average size of the dot product that produces the weights 
+        - Remember dot product is a scalar value
+        - Grows by a factor of $\sqrt{d_k}$ where k = num dimensions
+        - Therefore, we can counteract this by normalizing is via $\sqrt{d_k}$ as the denominator 
+   - **Step 3**: Apply softmax to convert scores into probabilities:
+     \[
+     \text{Attention Weight}_{ij} = \text{softmax}(\text{Scaled Score}_{ij})
+     \]
+   - **Step 4**: Compute the weighted sum of Value vectors:
+     \[
+     Z_i = \sum_j \text{Attention Weight}_{ij} \cdot V_j
+     \]
+![Attention Calc](./images/attention_calc.png)
+3. **Output**:
+   - The output \( Z_i \) is a context-aware representation of the word \( i \), influenced by its relationship with other words in the sequence.
+
+
+### Key, Query, and Value Matrices
+
+- **Query (Q)**:
+  - Represents the word being attended to.
+  - Used to calculate attention scores with all Keys.
+
+- **Key (K)**:
+  - Represents the context words being compared to the Query.
+  - Used to compute the relevance of each context word to the Query.
+
+- **Value (V)**:
+  - Represents the actual information of the context words.
+  - Weighted by the attention scores to produce the final output.
+
+These matrices are learned during training and updated via backpropagation.
+
+
+### Multi-Head Attention
+
+1. **Why Multi-Head Attention?**
+   - Instead of using a single set of \( Q, K, V \), Multi-Head Attention uses multiple sets to capture different types of relationships between words (e.g., syntactic vs. semantic).
+
+2. **How It Works**:
+   - Each head computes its own attention output.
+   - Outputs from all heads are concatenated and passed through a final weight matrix \( W_O \):
+     \[
+     Z = \text{Concat}(O^{(head_1)}, O^{(head_2)}, \dots) \cdot W_O
+     \]
+![Multi Headed Attention](./images/multi_attn.png)
+
+### Positional Encoding
+
+- Since Self Attention does not inherently consider word order, **Positional Encoding** is added to input embeddings to encode word positions.
+- Positional encodings are vectors added to each input embedding, allowing the model to distinguish between words based on their positions in the sequence.
+![Positional Encoding](./images/positional_encoding.png)
+
+### Residual Connections and Normalization
+
+- Each encoder layer includes a **residual connection** and **normalization layers** to stabilize training and improve gradient flow.
+![Residuals](./images/residuals.png)
+
+### Summary of Self Attention
+
+1. **Input Transformation**:
+   - Input embeddings are transformed into \( Q, K, V \) using learned weight matrices.
+
+2. **Attention Calculation**:
+   - Compute attention scores using dot products of \( Q \) and \( K \), scale them, and apply softmax.
+
+3. **Weighted Sum**:
+   - Use the attention weights to compute a weighted sum of \( V \), producing the output.
+
+4. **Multi-Head Attention**:
+   - Use multiple sets of \( Q, K, V \) to capture diverse relationships, then concatenate the results.
+
+5. **Positional Encoding**:
+   - Add positional information to embeddings to account for word order.
+
+
+### Context Size and Scaling Challenges
+
+- The size of the \( Q \cdot K \) matrix grows quadratically with the context size (\( n^2 \)), making it computationally expensive for long sequences.
+- To address this, masking is used to prevent future words from influencing current words during training (e.g., in autoregressive tasks).
+- Context size
+    - Size of Q * K matrix at the end is the square of the context size, since we need to use all of the Q * K vectors, and…it’s a matrix! So it’s n*n = n^2 so it’s very hard to scale
+    - It does help that we mask ½ the examples because we don’t want future words to alter our current word and have it cheat
+        - Since for an entire sentence during training for each word we try to predict the next, so if there are 5 words there’s 1, 2, 3, 4, 5 training examples and not just 1
+        - Don’t want 4 and 5 to interfere with training 1, 2, 3
+ 
+## Encoder-Decoder Attention
+
+Encoder-Decoder Attention is a mechanism used in **Seq2Seq tasks** (e.g., translation, summarization) to transform an input sequence into an output sequence. It combines **Self Attention** within the encoder and decoder blocks with **cross-attention** between the encoder and decoder
+
+
+
+### How Encoder-Decoder Attention Works
+
+1. **Encoder**:
+   - The encoder processes the input sequence and generates a sequence of **hidden states** that represent the context of the input
+   - Each encoder block consists of:
+     - **Self Attention Layer**:
+       - Allows each token in the input sequence to attend to other tokens in the sequence
+       - This captures relationships between tokens in the input
+     - **Feed Forward Layer**:
+       - Applies a fully connected feed-forward network to each token independently
+   - The output of each encoder block is passed to the next encoder block, and the final encoder block produces the **contextual embeddings** for the entire input sequence
+
+2. **Decoder**:
+   - The decoder generates the output sequence one token at a time, using both the encoder's output and its own previous outputs
+   - Each decoder block consists of:
+     - **Self Attention Layer**:
+       - Allows each token in the output sequence to attend to previous tokens in the sequence (auto-regressive behavior)
+       - Future tokens are masked to prevent the model from "cheating" by looking ahead
+     - **Encoder-Decoder Attention Layer**:
+       - Attends to the encoder's output (contextual embeddings) to incorporate information from the input sequence
+       - The **Query** comes from the decoder's self-attention output, while the **Key** and **Value** come from the encoder's output
+     - **Feed Forward Layer**:
+       - Applies a fully connected feed-forward network to each token independently
+
+3. **Final Decoder Output**:
+   - The final decoder layer produces a vector of floats for each token, which is passed through:
+     - A **linear layer** to expand the vector to the vocabulary size
+     - A **softmax layer** to produce a probability distribution over the vocabulary for the next token
+
+### Transformer Architecture for Encoder-Decoder Attention
+
+1. **Encoder**:
+   - Composed of multiple identical blocks (e.g., 6 blocks by default, but this is a hyperparameter)
+   - Each block contains:
+     - **Self Attention Layer**: Captures relationships within the input sequence
+     - **Feed Forward Layer**: Processes each token independently
+
+2. **Decoder**:
+   - Composed of multiple identical blocks (e.g., 6 blocks by default).
+   - Each block contains:
+     - **Self Attention Layer**: Captures relationships within the output sequence
+     - **Encoder-Decoder Attention Layer**: Incorporates information from the encoder's output
+     - **Feed Forward Layer**: Processes each token independently
+
+3. **Flow of Information**:
+   - The encoder processes the input sequence and generates contextual embeddings
+   - The decoder uses these embeddings, along with its own self-attention, to generate the output sequence token by token
+
+### Key Differences from Self Attention
+
+- [**Self Attention**](#self-attention):
+  - Operates within a single sequence (input or output)
+  - Captures relationships between tokens in the same sequence
+
+- **Encoder-Decoder Attention**:
+  - Operates across two sequences (input and output)
+  - Captures relationships between the input sequence (encoder output) and the output sequence (decoder input)
+
+### Training and Loss
+
+1. **Training Objective**:
+   - The model is trained to predict the next token in the output sequence given the input sequence and previous tokens in the output sequence.
+
+2. **Loss Functions**:
+   - [**Cross Entropy Loss**](../other_concepts/LOSS_FUNCTIONS.md#cross-entropy):
+     - Used to compare the predicted probability distribution (softmax output) with the true token.
+   - [**Kullback-Leibler (KL) Divergence**](../other_concepts/LOSS_FUNCTIONS.md#kl-divergence):
+     - Used to regularize the predicted probability distribution.
+
+3. **End of Sequence**:
+   - The model stops generating tokens when it outputs the `<EOS>` (end of sequence) token.
+
+### Visual Representation
+
+1. **Encoder Block**:
+   - Self Attention → Feed Forward → Output to next encoder block.
+
+2. **Decoder Block**:
+   - Self Attention → Encoder-Decoder Attention → Feed Forward → Output to next decoder block.
+
+3. **Final Decoder Output**:
+   - The final decoder output is passed through a linear layer and softmax to produce the next token.
+![Encoder Decoder Step](./images/encoder_decoder_step.png)
+
+### Summary of Encoder-Decoder Attention
+
+1. **Encoder**:
+   - Processes the input sequence and generates contextual embeddings using self-attention.
+
+2. **Decoder**:
+   - Generates the output sequence token by token using:
+     - Self Attention: Captures relationships within the output sequence.
+     - Encoder-Decoder Attention: Incorporates information from the input sequence.
+
+3. **Final Output**:
+   - The decoder's output is passed through a linear layer and softmax to produce the next token.
+
+4. **Training**:
+   - The model is trained using [cross-entropy loss](../other_concepts/LOSS_FUNCTIONS.md#cross-entropy) and [KL divergence](../other_concepts/LOSS_FUNCTIONS.md#kl-divergence), with each token in the output sequence contributing to the loss.
+![EncoderDecoder Output](./images/encoder_decoder_output.png)
+
+# User Embeddings
+TODO: Outside of collab filtering, how do we get user embeddings?
+TLDR; How do we get meaningful representations of users?
+
+# Embeddings vs Autoencoder vs Variational Autoencoder
+
+This question has come up in my own thoughts, and others have asked me - they all get to a relatively similar output of representing things into a compressed numeric format, but they all have different training objectives, use cases, and architectures - Autoencoders were created to reduce dimensionality, and Embeddings were created to represent, possibly dense items, into dense numeric representations
+
+
+
+## Embeddings
+### Description
+- Embeddings are dense vector representations of objects (e.g., words, users, items) that capture their semantic or contextual meaning in a continuous vector space
+- They are typically learned during the training of a neural network and can be static (pre-trained) or dynamic (contextual)
+
+### Use Cases
+- **Static Embeddings**:
+  - Pre-trained embeddings like Word2Vec or GloVe are used for tasks where the context does not change (e.g., word similarity tasks)
+  - Example: Representing the word "bank" as a fixed vector regardless of its context
+- **Dynamic Embeddings**:
+  - Contextual embeddings like BERT or GPT are used for tasks where the meaning of the object depends on its context
+  - Example: Representing "bank" differently in "river bank" vs. "central bank."
+
+### When to Use
+- Use embeddings when you need a lightweight, efficient representation of objects for tasks like:
+  - Search and retrieval (e.g., cosine similarity between query and document embeddings)
+  - Recommendation systems (e.g., user-item embeddings)
+  - Pre-trained embeddings for transfer learning
+
+
+## Autoencoder
+### Description
+- An Autoencoder is a type of neural network designed for dimensionality reduction. It learns to encode input data into a compressed representation (embedding) in the hidden layer and then reconstructs the original input from this representation
+    - It's typically used to represent sparse data into a more compact format
+- The encoder compresses the input, and the decoder reconstructs it
+- So what's the difference between an Autoencoder and Word2Vec? 
+    - Word2Vec doesn't get train input word to be reconstructed on the other side (outright) like an Autoencoder, instead it tries to predict surrounding words...therefore the end results are ultimately the same, but the training tasks are different
+
+### Use Cases
+- **Dimensionality Reduction**:
+  - Reducing high-dimensional data into a lower-dimensional embedding while preserving important features
+  - Example: Compressing image data for visualization or clustering
+- **Static Embeddings**:
+  - The hidden layer of the Autoencoder can be used as a static embedding for the input data
+  - Example: Representing user profiles or item features in a recommendation system
+
+### When to Use
+- Use Autoencoders when:
+  - You need ***static embeddings*** for structured data (e.g., tabular data, images)
+  - The input and output are the same, and you want to reduce dimensionality
+  - You do not need to generate new data points but only want a dense representation of existing data
+
+
+## Variational Autoencoder (VAE)
+### Description
+- A Variational Autoencoder is an extension of the Autoencoder that introduces a probabilistic approach. Instead of encoding the input into a single deterministic vector, it encodes it into a distribution (mean and variance)
+- The decoder samples from this distribution to reconstruct the input, allowing the generation of new data points
+
+### Use Cases
+- **Generative Models**:
+  - VAEs are used to generate new data points similar to the training data
+  - Example: Generating new images, text, or user profiles
+- **Dynamic Embeddings**:
+  - The latent space of the VAE can be used to create embeddings that capture uncertainty or variability in the data
+  - Example: Representing user preferences with variability for personalized recommendations
+
+### When to Use
+- Use VAEs when:
+  - You need to generate new data points (e.g., synthetic data generation, data augmentation)
+  - You want embeddings that capture uncertainty or variability in the data
+  - The task involves probabilistic modeling (e.g., anomaly detection, generative tasks)
+
+
+
+## Comparison and When to Choose
+
+| **Technique**         | **Static Embeddings** | **Dynamic Embeddings** | **Generative Tasks** | **Dimensionality Reduction** |
+|------------------------|-----------------------|-------------------------|-----------------------|------------------------------|
+| **Embeddings**         | Yes                  | Yes                    | No                    | No                           |
+| **Autoencoder**        | Yes                  | No                     | No                    | Yes                          |
+| **Variational Autoencoder (VAE)** | No                  | Yes                    | Yes                   | Yes                          |
+| **Word2Vec**           | Yes                  | No                     | No                    | No                           |
+
+### Key Considerations
+1. **Static vs. Dynamic Embeddings**:
+   - Use Autoencoders or Word2Vec for static representations
+   - Use BERT or some sort of Transformer model with Attention for dynamic embeddings
+
+2. **Dimensionality Reduction**:
+   - Use Autoencoders or VAEs when you need to reduce the dimensionality of high-dimensional data
+
+3. **Generative Tasks**:
+   - Use VAEs when you need to generate new data points or capture variability in the data
+
+4. **Lightweight Models**:
+   - Use Word2Vec for lightweight, static word embeddings
+
+
 # Vector Similarities
 Vector similarities are useful for comparing our final embeddings to others in search space
 
@@ -328,6 +717,3 @@ This is the typical distance in euclidean space
 $euclidean(a, b) = [\sum_{i=1}^v (a_i \times b_i)^2]^{1/2}$ 
 
 Here magnitude matters, and a smaller distance between vector end-points means a smaller overall distance metric
-
-# Attention
-Left this for the end because it's such a longstanding discussion, and encompasses so much information. Attention is ultimately the concept that allows Transformers to create contextual embeddings

@@ -1,3 +1,27 @@
+# Table of Contents
+- [Output Layers](#output-layers)
+  - [Catches](#catches)
+    - [Folding](#folding)
+  - [Regression](#regression)
+    - [Linear](#linear)
+  - [Classification](#classification)
+    - [Sigmoid](#sigmoid)
+    - [Softmax](#softmax)
+  - [Other Types](#other-types)
+    - [Softmax with Temperature](#softmax-with-temperature)
+    - [Logits](#logits)
+    - [Tanh](#tanh)
+- [Loss Functions](#loss-functions)
+  - [Gradient Descent](#gradient-descent)
+  - [Negative Sampling](#negative-sampling)
+    - [Stochastic Gradient Descent (SGD)](#stochastic-gradient-descent-sgd)
+    - [Mini Batch](#mini-batch)
+    - [Mini Batch Stochastic Gradient Descent](#mini-batch-stochastic-gradient-descent)
+  - [Weighted Alternating Least Squares](#weighted-alternating-least-squares)
+  - [Cross Entropy](#cross-entropy)
+  - [KL Divergence](#kl-divergence)
+    - [When to Use Cross Entropy vs. KL Divergence](#when-to-use-cross-entropy-vs-kl-divergence)
+
 # Output Layers
 The final output layers of our models typically go hand-in-hand with the [Loss Functions](#loss-functions) that we use
 
@@ -82,5 +106,79 @@ Mini Batch Stochastic Gradient Descent combines the concepts of mini batch and s
 Weighted Alternating Least Squares is an optimization algorithm used in matrix factorization techniques, particularly for recommendation systems. It alternates between fixing the user matrix and optimizing the item matrix, and vice versa, while incorporating weights for observed and unobserved interactions.
 
 ## Cross Entropy
-Cross Entropy is a loss function commonly used for classification tasks. It measures the difference between the true probability distribution and the predicted probability distribution
+Cross Entropy is a loss function commonly used for **classification tasks**. It measures the difference between the true probability distribution (ground truth) and the predicted probability distribution (output of the model). It is particularly effective when the output of the model is a probability distribution (e.g., from a softmax layer).
 
+### Formula
+\[
+H(p, q) = -\sum_{i} p_i \log(q_i)
+\]
+Where:
+- \( p_i \): True probability of class \( i \) (ground truth, typically one-hot encoded).
+- \( q_i \): Predicted probability of class \( i \) (output of the model).
+
+### Use Cases
+- **Binary Classification**:
+  - Used with a sigmoid activation function for tasks with two classes (e.g., spam vs. not spam).
+  - Example: Predicting whether an email is spam or not.
+- **Multi-Class Classification**:
+  - Used with a softmax activation function for tasks with more than two classes (e.g., classifying images into categories).
+  - Example: Classifying images into categories like cats, dogs, and birds.
+
+### Why Use Cross Entropy?
+- Penalizes incorrect predictions more heavily when the model is confident but wrong.
+- Works well when the output is a probability distribution, as it directly compares the predicted probabilities to the true probabilities.
+
+---
+
+## KL Divergence
+KL Divergence (Kullback-Leibler Divergence) is a measure of how one probability distribution \( q \) (predicted) diverges from a second probability distribution \( p \) (true). It is often used in tasks where the true labels are **probability distributions** rather than one-hot encoded labels.
+
+### Formula
+\[
+D_{KL}(p \| q) = \sum_{i} p_i \log\left(\frac{p_i}{q_i}\right)
+\]
+Where:
+- \( p_i \): True probability of class \( i \) (ground truth distribution).
+- \( q_i \): Predicted probability of class \( i \) (output of the model).
+
+### Use Cases
+- **Probabilistic Outputs**:
+  - Used when the ground truth is a probability distribution (not one-hot encoded).
+  - Example: Language modeling tasks where the ground truth is a smoothed probability distribution over words.
+- **Regularization**:
+  - Often used as a regularization term in models like Variational Autoencoders (VAEs) to ensure that the learned latent distribution is close to a prior distribution (e.g., Gaussian).
+
+### Why Use KL Divergence?
+- Useful for comparing two probability distributions rather than a single label.
+- Penalizes predictions that deviate significantly from the true distribution.
+
+---
+
+## When to Use Cross Entropy vs. KL Divergence
+
+| **Scenario**                                   | **Use Cross Entropy**                                                                 | **Use KL Divergence**                                                                 |
+|------------------------------------------------|--------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------|
+| **Binary Classification**                      | Use Cross Entropy with a sigmoid activation function.                                | Not applicable.                                                                      |
+| **Multi-Class Classification**                 | Use Cross Entropy with a softmax activation function.                                | Not applicable.                                                                      |
+| **Ground Truth is a Probability Distribution** | Not applicable.                                                                      | Use KL Divergence to compare the predicted and true distributions.                   |
+| **Language Modeling**                          | Use Cross Entropy when the ground truth is one-hot encoded.                          | Use KL Divergence when the ground truth is a smoothed or probabilistic distribution.  |
+| **Regularization**                             | Not applicable.                                                                      | Use KL Divergence to regularize the predicted distribution (e.g., in VAEs).          |
+
+### Example Scenarios
+1. **Image Classification**:
+   - Task: Classify images into categories (e.g., cats, dogs, birds).
+   - Use **Cross Entropy** with a softmax activation function, as the ground truth is one-hot encoded.
+
+2. **Language Modeling**:
+   - Task: Predict the next word in a sentence.
+   - Use **Cross Entropy** if the ground truth is one-hot encoded (e.g., the next word).
+   - Use **KL Divergence** if the ground truth is a smoothed probability distribution over words.
+
+3. **Variational Autoencoders (VAEs)**:
+   - Task: Learn a latent representation of data.
+   - Use **KL Divergence** to regularize the latent distribution to match a prior (e.g., Gaussian).
+
+4. **Recommendation Systems**:
+   - Task: Predict the probability of a user interacting with an item.
+   - Use **Cross Entropy** if the ground truth is binary (e.g., clicked or not clicked).
+   - Use **KL Divergence** if the ground truth is a probability distribution over items.
