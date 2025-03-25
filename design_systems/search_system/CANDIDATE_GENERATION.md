@@ -18,6 +18,8 @@ The reason candidate generation is so useful, is because it typically allows us 
 
 It's also done relatively quickly, ideally in a way where we can index / lookup a matrix or user history in a relatively fast fashion, on services that have been updated in the background by our web servers. Basically, we are hoping that as users use our service their item and user history have been being updated and sent to our search systems in real-time, and when we need this information our architecture is setup to be real-time responsive
 
+In Candidate Generation, ***Queries are Users and we compare them to Items***
+
 ## User-Item Matrices
 Our [Embeddings](../../other_concepts/EMBEDDINGS.md) concept paper discusses this in detail, but for all of our systems we generally have 2 key components - users and items
 
@@ -45,7 +47,7 @@ M = \begin{pmatrix}
 With this setup we have now projected our Users and Items into an Embedding Space $E \in \real^v$ where $v$ defines the total number of videos in our corpus. Since $v$ is probably humongous, we can use [Matrix Factorization](#matrix-factorization) to decompose this into two separate matrices $U \in \real^{v'}, I \in \real^{v'}$ where $v' \leq v$ to ultimately reduce the total size of our search space while preserving information
 
 ## Similarity
-If we want to find similar users, we have a search function $S: E \times E \rightarrow \real$ where $S(q, x)$ has a query $q$ and compares it to each other embedding $x$ in our embedding space to find similar users. This allows us some flexibility in "find similar users to user Q" and then we can filter down to all of the videos user Q hasn't seen from the most similar users
+If we want to find similar users, we have a search function $S: E \times E \rightarrow \real$ where $S(q, x)$ has a query $q$ and compares it to each other embedding $x$ in our embedding space to find similar vectors $x$, which may be Users or Items. This allows us some flexibility in "find similar users / items to user Q" and then we can use [ScaNN (Scalable Nearest Neighbors)](https://github.com/google-research/google-research/tree/master/scann) to find the Top K nearest vectors
 
 Our [Vector Similarity Scoring](../../other_concepts/EMBEDDINGS.md#vector-similarities) can be anything from Cosine to Dot products, but for this example if we normalize all of the vectors down to $[0, 1]$ we should be able to use either. 
 
@@ -55,6 +57,8 @@ In any other example, a popular video tends to coincide with larger norms, and s
 Filtering leverages the idea that users who have agreed in the past will agree in the future, based on user similarity or item similarity
 
 In either way we can use embedding matrices for Users $U$ or Items $I$, or a combination of them. Similarity between items is calculated using metrics such as cosine similarity, Pearson correlation, or Jaccard index
+
+To find recommendations, you compare the query (User embedding) to all Item embeddings using similarity metrics (e.g., dot product, cosine similarity), which will ultimately give you the top Items for a User
 
 ## Item Content Filtering 
 - Recommends items to a user based on the similarity between items
@@ -244,8 +248,6 @@ Solving for this equation:
     - For items with absolutely no embeddings: Most use cases will just average the embeddings of items in a similar "category" as defined by domain knowledge, and then use that as a starting point to iterate and update
     - For a new item or new user with limited interactions, one single iteration of WALS should give us a useful embedding by holding the other category fixed and finding the closest other item given any interactions
 
-# Two Tower
-
 # DNN For Candidate Generation
 - DNN will allow us to solve the Cons listed above for filtering
     - Using side features
@@ -257,6 +259,13 @@ Solving for this equation:
     - Since our output is a probability distribution that's comparable to truth (all 0's and a 1) we can use [cross-entropy loss function](../../other_concepts/LOSS_FUNCTIONS.md#cross-entropy)
 - We could also add in other hidden layers and non-linear (ReLU) layers, or anything else, to capture non-linear relationships
 - We could also change the entire hidden layers to remove the matrix factorization phase, and use the hidden layers as a way to map user features into a projected embedding layer
+
+## Two Towers
+Two Towers will also generate embeddings for users and items, similar to Matrix Factorization, except in this scenario there's one tower for Queries (Users), and one tower for Items
+
+The Two Towres will allow us to create Dynamic, and maybe even [attended to](../../other_concepts/EMBEDDINGS.md#attention) embeddings, which is different from static embeddings created via Filtering & Matrix Factorization. At the end to get a recommendation it's a similar option where we compute similarity of Query to all Items (maybe using [ScaNN (Scalable Nearest Neighbors)](https://github.com/google-research/google-research/tree/master/scann)) and find Top K
+
+This will allow us to bypass the cold start problem, and the static embedding problem, but increases our latency as we need to use another DNN call in our Ranking service
 
 ## Multi Tasks Learning
 The tasks of this model are important, if we strictly focus on "probability of engaging" we might end up recommending click-bait videos, or if we do "time spent watching" it might recommend videos that try to get the user to keep watching long into the videos
