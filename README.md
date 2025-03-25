@@ -9,16 +9,16 @@ Think of it as a structured dump of everything I've read and wanted to document 
 ---
 
 ## 📖 Table of Contents
-- [References](#references)
-- [Design Systems](#design-systems)
-  - [Databases and Storage](#databases-and-storage)
-  - [Messaging](#messaging)
-  - [Typical Resources](#typical-resources)
-- [DSA](#dsa)
-- [Other Concepts](#other-concepts)
-- [Implementations](#implementations)
-- [Leet](#leet)
-- [Arxiv Papers](#arxiv)
+- [References](#-references)
+- [Design Systems](#-design-systems)
+  - [Databases and Storage](#-databases-and-storage)
+  - [Messaging](#-messaging)
+  - [Typical Resources](#-typical-resources)
+- [DSA](#-dsa)
+- [Other Concepts](#-other-concepts)
+- [Implementations](#-implementations)
+- [Leet](#-leet)
+- [Arxiv Papers](#-arxiv)
 
 ---
 
