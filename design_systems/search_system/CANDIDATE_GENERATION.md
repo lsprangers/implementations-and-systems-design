@@ -10,6 +10,7 @@
   - [Matrix Factorization](#matrix-factorization)
     - [Explanation](#explanation)
     - [Weighted Matrix Factorization](#weighted-matrix-factorization)
+- [Two Towers](#two-tower)    
 - [DNN For Candidate Generation](#dnn-for-candidate-generation)
 
 # Candidate Generation
@@ -242,7 +243,8 @@ Solving for this equation:
 - *For cold start problem, 
     - For items with absolutely no embeddings: Most use cases will just average the embeddings of items in a similar "category" as defined by domain knowledge, and then use that as a starting point to iterate and update
     - For a new item or new user with limited interactions, one single iteration of WALS should give us a useful embedding by holding the other category fixed and finding the closest other item given any interactions
- 
+
+# Two Tower
 
 # DNN For Candidate Generation
 - DNN will allow us to solve the Cons listed above for filtering
@@ -255,4 +257,11 @@ Solving for this equation:
     - Since our output is a probability distribution that's comparable to truth (all 0's and a 1) we can use [cross-entropy loss function](../../other_concepts/LOSS_FUNCTIONS.md#cross-entropy)
 - We could also add in other hidden layers and non-linear (ReLU) layers, or anything else, to capture non-linear relationships
 - We could also change the entire hidden layers to remove the matrix factorization phase, and use the hidden layers as a way to map user features into a projected embedding layer
+
+## Multi Tasks Learning
+The tasks of this model are important, if we strictly focus on "probability of engaging" we might end up recommending click-bait videos, or if we do "time spent watching" it might recommend videos that try to get the user to keep watching long into the videos
+
+Ultimately we want to use simple tasks to find relevant content for the users, and we could use multi-task learning to do so
+
+TODO: Describe multi-task learning outputs and model weight updates using `./other_concepts/MULTITASK_LEARNING.md`
     

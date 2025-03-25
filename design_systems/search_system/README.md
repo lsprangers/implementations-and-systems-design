@@ -1,6 +1,7 @@
 # Table of Contents
+- [Ecommerce Diagram](#ecommerce-diagram)
 - [Search Systems](#search-systems)
-- [Terminology](#terminology)
+    - [Terminology](#terminology)
 - [History](#history)
   - [Inverted Indexes](#inverted-indexes)
   - [Embeddings](#embeddings)
@@ -18,6 +19,30 @@
   - [Candidate Generation](#candidate-generation-1)
   - [Ranking](#ranking)
     - [Learn To Rank](#learn-to-rank)
+
+# Ecommerce Diagram
+Below we can see a generic E-Commerce website setup that includes a recommendation system
+
+This flow only includes the default user recommendations, and in other flows we'd have to include "current search item" or "returned order item" or something similar
+
+The dotted lines represent our [Filtering Steps](#filtering) which is the part of our rec service that should be fairly "online and up to date", whereas our [Candidate Generation](#candidate-generation) and [Ranking](#ranking) are trained / updated over time, but not always "up to date"
+
+![Ecommerce Arch](./images/SysArchTemplate-ECommerce%20Search%20System.png)
+
+- ***Notes***
+    - We specify CDN + User Sessions and Cookies because at a high level they show how we are going to run some sort of personalization
+        - We will process user + item history and eventually create interaction data in our data warehouse, and that's only possible if we have general click data
+    - Parallel / Concurrent calls
+        - Our calls to `/GET Homepage` to our API GW and `/GET Recs ? userId=...` should happen in parallel, and each database should be able to handle async concurrent requests so that all of this info can get aggregated and returned to users browser
+    - Our Rec System
+        - [Candidate Generation](#candidate-generation) is a very important step that should be altered for whatever we are looking to do...some tasks might need collaborative filtering, some content, some plain old lists
+        - [Filtering](#filtering) is ***stateful*** meaning it makes multiple database calls to other services ***(distributed monolith not microservice)***, it is where we can ***inject experiments***, and really update it to anything we want
+        - [Ranking](#ranking) is using a DNN, and we should train it for ***multi-task*** learning to ensure it maximizes engagement, conversion, usefullness, and other tasks. We don't cover that paradigm below, most of the DNN discussion is around "probability of engagement" or "predicted watch time" which are both prone to clickbait, but are an intuitive start
+        - Most of the time these issues would be handled in our Filtering phase with yet another model tied to it for predicting click-bait!
+    - Event Streaming + Warehousing is used across the board for CDC from the databases to ensure we can run analytics and retrain models for future recommendation systems
+    - [Top K Heavy Hitters](../top_k/README.md) is covered in another system design, but here we could use our warehouse to implement it. We'd want to observe real-time trends, seasonal patterns, and viral content
+    - This is all handled via an [API Gateway](../_typical_reusable_resources/_typical_frontend/README.md), or typical frontend, which, along with proper load balancing and caching, can help ensure all of our requests are secure, correctly routed, and even minimal aggregation for returning to users browser
+        - It can also help with experimentation routing! 
 
 # Search Systems
 Search Systems (also Recommendation systems since we recommend something back) are used for finding relevant content based on a query
