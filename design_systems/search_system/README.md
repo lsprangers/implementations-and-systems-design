@@ -9,10 +9,10 @@
     - [Embedding Space Updates](#embedding-space-updates)
     - [User-Item Matrix Updates](#user-item-matrix-updates)
     - [DNN Updates](#dnn-updates)
-  - [Retrieval](#retrieval)
-    - [KNN](#knn)
+  - [Filtering](#filtering)
   - [Scoring](#scoring)
-  - [Reranking](#reranking)
+    - [KNN](#knn)
+  - [Reranking / Ordering](#reranking--ordering)
 - [Conclusion](#conclusion)
 - [Youtube DNN System](#youtube-dnn-system)
   - [Candidate Generation](#candidate-generation-1)
@@ -31,6 +31,9 @@ All of these things are queries and we'd expect different content to be returned
 For a further look at [Embeddings](../../other_concepts/EMBEDDINGS.md#embeddings) check out the sub-document
 
 Youtube will typically return Videos, Google will return almost any content type, App Store would return applications, and Facebook might return posts / users (friends)
+
+An Example from Nvidia
+![Nvidia](./images/nvidia.png)
 
 ## Terminology
 - An ***item*** is generally the thing we'd want to recommend
@@ -58,6 +61,8 @@ Over time recommendation / search systems have gone through a lot of changes
 
 Search has started to move away from returning items to returning summaries and question answering live through "GenAI", but in reality this is mostly still based on Transformer models and NLP tasks where we surround it with new context / query information
 
+Here's a list of Examples from the Wild from NVIDIA
+![Example](./images/examples.png)
 
 ## Inverted Indexes
 [Inverted Indexes](INVERTED_INDEX.md) have been around for a long time, and they built the original search systems we think of. When you hear of "Google indexed my page" or "Google crawled my page" it is referring to a system similar to this
@@ -102,23 +107,19 @@ The DNN needs to be ran each time for a specific user to get the output Candidat
 
 The data drift detection can be a separate background feature pipeline in our processing engine, and once there's a significant enough change we can schedule a new model to be trained for inference
 
-## Retrieval
+## Filtering
+Since our Candidate Generation models must run in milliseconds over gigantic corpus, we shouldn't embed any sort of "business logic" inside of them - things like product being out of stock, product not being child friendly, or product being too far away. These things should be based on user-features, but shouldn't fluff up our Candidate Generation model
+
+In the past a ***Bloom Filter***, which is now common place in many scenarios, was used to disregard items that the user has already interacted with!
+
+Once the filtering is done, we can send things through to Scoring
+
+## Scoring
 Given a user coming online, or a query being submitted, how do we actually obtain a set of items to present? This is the main focus of Retrieval and Scoring, sometimes called Ranking, and there are even some Re-Ranking steps involved...
 
 For a [Matrix Factorization](../../other_concepts/EMBEDDINGS.md#matrix-factorization) technique, we'd have the static embeddings sitting in an API or on disk somewhere for us to look up at query time. We can simply look things up from the User Embedding Matrix to get our query embedding $q_u$
 
 For a DNN model we need to run an inference forward-pass to compute the query embedding at query time by using the weights that were trained from [DNN Updates](#dnn-updates) $q_u = \phi(u)$
-
-### KNN
-Once we have our query embedding $q_u$ we need need to search for the Top K Nearest Neighbors (KNN) items $V_j$ in the Item Matrix that are closest to $q_u$ - this is typically done with the [Ranking and Scoring](./RANKING.md) algorithms described elsewhere, which help us compute a score $s(q_u \cdot v_j)$ for our query across the Item Embedding Space 
-
-- This is a fairly large and complex thing to do online for each query, but there are ways to alleviate this:
-    - If the query embedding is known statically, the system can perform exhaustive scoring offline, precomputing and storing a list of the top candidates for each query. This is a common practice for related-item recommendation.
-    - Use approximate nearest neighbors. Google provides an open-source tool on GitHub called [ScaNN (Scalable Nearest Neighbors)](https://github.com/google-research/google-research/tree/master/scann). This tool performs efficient vector similarity search at scale
-        - ScaNN using space pruning and quantization, among many other things, to scale up their Inner Product Search capabilities, which basically means they make running Dot Product search very fast, and they also mention support of other distance metrics like Euclidean 
-
-## Scoring
-After Candidate Generation and Retrieval, we need to Score the final set of Items to display to the user
 
 The algorithms described in [Ranking and Scoring](./RANKING.md) can also be used here - it's really a horse a piece and what features you put into each and the objective function they're trained to "solve"
 
@@ -136,7 +137,15 @@ Why do we split Candidate Generation from Ranking?
 - Some systems use multiple Candidate Generation models
 - Some Ranking models use heavier sets of features or heavier models that can't run over the entire corpus
 
-## Reranking
+### KNN
+Once we have our query embedding $q_u$ we need need to search for the Top K Nearest Neighbors (KNN) items $V_j$ in the Item Matrix that are closest to $q_u$ - this is typically done with the [Ranking and Scoring](./RANKING.md) algorithms described elsewhere, which help us compute a score $s(q_u \cdot v_j)$ for our query across the Item Embedding Space 
+
+- This is a fairly large and complex thing to do online for each query, but there are ways to alleviate this:
+    - If the query embedding is known statically, the system can perform exhaustive scoring offline, precomputing and storing a list of the top candidates for each query. This is a common practice for related-item recommendation.
+    - Use approximate nearest neighbors. Google provides an open-source tool on GitHub called [ScaNN (Scalable Nearest Neighbors)](https://github.com/google-research/google-research/tree/master/scann). This tool performs efficient vector similarity search at scale
+        - ScaNN using space pruning and quantization, among many other things, to scale up their Inner Product Search capabilities, which basically means they make running Dot Product search very fast, and they also mention support of other distance metrics like Euclidean 
+
+## Reranking / Ordering
 This final part of the model is to mostly filter out items that may have made it through and aren't useful...these reranking models are much more dynamic and trained on "current issues" like pirated sports streams or child restriction content which could change much faster than our generic ranking systems need to
 
 Typical examples include:

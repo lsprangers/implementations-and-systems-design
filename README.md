@@ -18,6 +18,7 @@ Think of it as a structured dump of everything I've read and wanted to document 
 - [Other Concepts](#other-concepts)
 - [Implementations](#implementations)
 - [Leet](#leet)
+- [Arxiv Papers](#arxiv)
 
 ---
 
@@ -32,6 +33,8 @@ These are some of the resources I frequently use and reference throughout this r
 - [Google ML Rec Systems](https://developers.google.com/machine-learning/recommendation): Useful for search, recommendation systems, and embeddings.
 - [Hello Interview](https://www.hellointerview.com): Great for Systems Design interview preparation.
 - [Programiz](https://www.programiz.com): Excellent for DSA implementations and complexity analysis.
+- [Medium Articles]
+  - [NVIDIA Recommender Systems](https://medium.com/nvidia-merlin/recommender-systems-not-just-recommender-models-485c161c755e)
 
 ---
 
@@ -88,6 +91,11 @@ A collection of generic implementations, including:
 ## 🧩 Leet
 
 This is a dump of **Leetcode problems** and comments, organized for easy reference.
+
+---
+
+## 😀 Arxiv
+These are just papers I've read marked up with highlighter - my old iPad died and brought these here
 
 ---
 
