@@ -44,7 +44,7 @@
   - [Autoencoder](#autoencoder)
   - [Variational Autoencoder (VAE)](#variational-autoencoder-vae)
   - [Comparison and When to Choose](#comparison-and-when-to-choose)
-- [Vector Similarities](#vector-similarities)
+- [Vector Similarities + Lookup](#vector-similarities--lookup)
   - [Cosine](#cosine)
   - [Dot](#dot)
   - [Euclidean](#euclidean)
@@ -687,8 +687,31 @@ This question has come up in my own thoughts, and others have asked me - they al
    - Use Word2Vec for lightweight, static word embeddings
 
 
-# Vector Similarities
+# Vector Similarities + Lookup
 Vector similarities are useful for comparing our final embeddings to others in search space
+
+None of the below are actually useful in real life, as computing these for Top K is very inefficient - approximate Top K algorithms like Branch-and-Bound, Locality Sensitive Hashing, and FAISS clustering are used instead
+
+[We discuss all of that here](../design_systems/search_system/README.md#knn)
+
+## Quantization
+Quantization
+- Definition: Quantization is a technique used to reduce the size of vector representations (e.g., embeddings) while preserving their ability to compare similarity effectively
+- How It Works:
+  - It reduces the precision of the numerical values in the vector (e.g., from 32-bit floating-point to 8-bit integers)
+  - This compression reduces memory usage and speeds up computations, especially for large-scale systems.
+- Key Idea: 
+  - The goal is to maintain the relative distances or similarities between vectors in the embedding space, even after reducing their size
+- Use Cases:
+  - Approximate Nearest Neighbor Search: Quantized vectors are often used in libraries like FAISS to perform fast similarity searches
+  - Edge Devices: Quantization is used to deploy machine learning models on devices with limited memory and computational power (e.g., mobile phones, IoT devices)
+- Limitations:
+  - Quantization introduces some loss of precision, which can slightly affect the accuracy of similarity comparisons
+## Sketching
+TODO:
+
+## Feature Multiplexing
+TODO:
 
 ## Cosine
 Cosine similarity will ultimately find the angle between 2 vectors
@@ -717,3 +740,21 @@ This is the typical distance in euclidean space
 $euclidean(a, b) = [\sum_{i=1}^v (a_i \times b_i)^2]^{1/2}$ 
 
 Here magnitude matters, and a smaller distance between vector end-points means a smaller overall distance metric
+
+# Topological Interpretations
+Most of this comes from [Yuan Meng Embeddings Post](https://www.yuan-meng.com/posts/ebr/)
+
+There we see discussions of how embeddings, topologically, can be considered a injective one-to-one mapping that preserves properties of both metric spaces
+
+We can also see that from a ML lense, embeddings represent dense numeric features in n-dimensional space
+- Images can go to `3 colors x 256 pixels` dimension using photo represenation on disk (this is just how photos are stored)
+- Text can go from sentences to `256 dimension` vectors in Word2Vec or BERT
+- Text can go from address sentences to `[lat, long]` 2 dimensions - we cover this in [Address Embeddings](./ADDRESS_EMBEDDING_GEOCODING.md)
+
+The main point of all of this is that Embeddings equate to --> topological properties are preserved - that's what allows the famous `King - man + woman = Queen` and `France is to Paris as Germany is to Berlin`
+
+***A random list of numbers is a numeric representation, but they are not Embeddings***
+
+One-hot encoding, kindof, preserves topolological properties, but all of the vectors end up being orthogonal to each other so we can't say category1 + category2 = 0.5category3...they're orthogonal! Typically we need to map these from OHE metric space to a lower dimensional metric space to get those properties out of it
+
+![Yuan Meng Example](./images/yuan_meng_example.png)

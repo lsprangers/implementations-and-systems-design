@@ -30,7 +30,10 @@ These are some of the resources I frequently use and reference throughout this r
 - [3Blue1Brown](https://www.3blue1brown.com/): Amazing visual explanations for Linear Algebra, Probability, and Deep Neural Networks.
   - Highly recommend the [Attention](https://www.youtube.com/watch?v=eMlx5fFNoYc&vl=en) video for understanding Transformers.
 - [Jay Alammar's Visual Transformer Paper](https://jalammar.github.io/illustrated-transformer/): A fantastic resource for understanding Attention and Transformers.
+- [Yuan Meng Embeddings Post](https://www.yuan-meng.com/posts/ebr/)
+  - Useful for seeing the actual topological interpretations of embeddings, and why geomtric / metric space operations are allowed
 - [Google ML Rec Systems](https://developers.google.com/machine-learning/recommendation): Useful for search, recommendation systems, and embeddings.
+  - [Google Two Tower Article](https://cloud.google.com/blog/products/ai-machine-learning/scaling-deep-retrieval-tensorflow-two-towers-architecture)
 - [Hello Interview](https://www.hellointerview.com): Great for Systems Design interview preparation.
 - [Programiz](https://www.programiz.com): Excellent for DSA implementations and complexity analysis.
 - [Medium Articles]

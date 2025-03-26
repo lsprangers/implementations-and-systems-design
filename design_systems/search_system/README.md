@@ -13,6 +13,9 @@
   - [Filtering](#filtering)
   - [Scoring](#scoring)
     - [KNN](#knn)
+        - [Branch And Bound](#branch-and-bound)
+        - [Locality Sensitive Hashing](#locality-sensitive-hashing)
+        - [FAISS](#faiss)
   - [Reranking / Ordering](#reranking--ordering)
 - [Conclusion](#conclusion)
 - [Youtube DNN System](#youtube-dnn-system)
@@ -79,10 +82,16 @@ An Example from Nvidia
 # History
 Over time recommendation / search systems have gone through a lot of changes 
 - At first we used inverted indexes for text based lookups of documents which would allow things like webpage lookup on google
-- Over time 
-    - Recommendation systems started to span multiple content types, from videos to other users to generic multimedia, and the systems had to keep up
-    - Companies started to have humongous web scale for items like Amazon, Google, and Facebook
-    - These evolutions led to new search systems that had multiple stages across various content types ***which led systems to converge on Candidate Generation and Scoring over projected embeddings***
+- Most of this stayed with token-based matching using more advanced methods like n-grams, maybe using distance metrics like Levenshtein, or even some minimal ranking with TF-IDF based methods
+    - The takeaway here was that we were always comparing text-to-text
+    - These systems had ***high precision, but low recall***...if a word matches char for chat, it matches! But finding the matches that didn't 100% overlap became an issue
+- Over time:
+    - Scale occurred:
+        - Recommendation systems started to span multiple content types, from videos to other users to generic multimedia, and the systems had to keep up
+        - Companies started to have humongous web scale for items like Amazon, Google, and Facebook
+        - These evolutions led to new search systems that had multiple stages across various content types ***which led systems to converge on Candidate Generation and Scoring over projected embeddings***
+    - Embeddings occurred:
+        - We started to look to scores that could be calculated between `<query, candidate>` pairs to give us high precision and higher recall
 
 Search has started to move away from returning items to returning summaries and question answering live through "GenAI", but in reality this is mostly still based on Transformer models and NLP tasks where we surround it with new context / query information
 
@@ -169,6 +178,49 @@ Once we have our query embedding $q_u$ we need need to search for the Top K Near
     - If the query embedding is known statically, the system can perform exhaustive scoring offline, precomputing and storing a list of the top candidates for each query. This is a common practice for related-item recommendation.
     - Use approximate nearest neighbors. Google provides an open-source tool on GitHub called [ScaNN (Scalable Nearest Neighbors)](https://github.com/google-research/google-research/tree/master/scann). This tool performs efficient vector similarity search at scale
         - ScaNN using space pruning and quantization, among many other things, to scale up their Inner Product Search capabilities, which basically means they make running Dot Product search very fast, and they also mention support of other distance metrics like Euclidean 
+    
+Most of the time computing Top K is very inefficient - approximate Top K algorithms like Branch-and-Bound, Locality Sensitive Hashing, and FAISS clustering are used instead
+
+#### Branch And Bound
+- **Description**:
+  - A search algorithm used to efficiently find the **Top K nearest neighbors** by pruning irrelevant regions of the search space.
+  - It systematically explores the search space while maintaining bounds on the best possible solution.
+- **How It Works**:
+  - Calculates a **lower bound** for each candidate region and compares it to the current best solution.
+  - Regions that cannot contain better solutions are pruned, reducing the number of comparisons.
+- **Use Case**:
+  - Effective for **exact nearest neighbor search** in structured datasets where pruning can significantly reduce computation.
+- **Limitations**:
+  - Computationally expensive for high-dimensional data unless combined with other techniques like space partitioning.
+
+#### Locality Sensitive Hashing (LSH)
+- **Description**:
+  - A technique for **approximate nearest neighbor search** that hashes similar items into the same bucket with high probability.
+  - Reduces the dimensionality of the data while preserving similarity.
+- **How It Works**:
+  - Uses hash functions designed to maximize the probability that similar items (based on a distance metric like cosine similarity or Euclidean distance) map to the same hash bucket.
+  - Instead of comparing all items, only items in the same bucket are considered for nearest neighbor search.
+- **Use Case**:
+  - Ideal for **high-dimensional data** and large-scale systems where exact search is computationally infeasible.
+  - Commonly used in recommendation systems, plagiarism detection, and image similarity search.
+- **Limitations**:
+  - May miss some neighbors due to the approximate nature of the algorithm.
+
+#### FAISS (Facebook AI Similarity Search)
+- **Description**:
+  - An open-source library developed by Facebook for **efficient similarity search** and **clustering of dense vectors**.
+  - Optimized for both exact and approximate nearest neighbor search.
+- **How It Works**:
+  - Supports multiple indexing methods, including:
+    - **Flat Index**: Exhaustive search for exact results.
+    - **IVF (Inverted File Index)**: Partitions the dataset into clusters for faster approximate search.
+    - **HNSW (Hierarchical Navigable Small World)**: Graph-based search for high recall and low latency.
+  - Uses GPU acceleration for large-scale datasets.
+- **Use Case**:
+  - Widely used in **recommendation systems**, **image retrieval**, and **embedding-based search**.
+  - Scales well to billions of vectors with low latency.
+- **Limitations**:
+  - Requires tuning of indexing parameters for optimal performance.
 
 ## Reranking / Ordering
 This final part of the model is to mostly filter out items that may have made it through and aren't useful...these reranking models are much more dynamic and trained on "current issues" like pirated sports streams or child restriction content which could change much faster than our generic ranking systems need to

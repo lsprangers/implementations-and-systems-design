@@ -2,7 +2,7 @@
 - [Candidate Generation](#candidate-generation)
   - [User-Item Matrices](#user-item-matrices)
   - [Similarity](#similarity)
-- [Filtering Mechanisms](#filtering-mechanisms)
+- [Filtering and Factorization](#filtering-and-factorization)
     - [Item Content Filtering](#item-content-filtering)
     - [User-Item Collaborative Filtering](#user-item-collaborative-filtering)
         - [How Collaborative Filtering Works](#how-collaborative-filtering-works)
@@ -21,9 +21,11 @@ It's also done relatively quickly, ideally in a way where we can index / lookup 
 In Candidate Generation, ***Queries are Users and we compare them to Items***
 
 ## User-Item Matrices
-Our [Embeddings](../../other_concepts/EMBEDDINGS.md) concept paper discusses this in detail, but for all of our systems we generally have 2 key components - users and items
+Our [Embeddings](../../other_concepts/EMBEDDINGS.md) concept paper discusses this in detail, but for all of our systems we generally have 2 key components - queries (users) and items
 
 Over time users engage with items (which might be other users!), and this is a scorable numeric metric - they either rank them (movies), watch them (Youtube video watch time), read them (Newspaper post read through length), or engage with them (check another users page)
+
+These ***co-occurrence*** matrices showcase how our users (queries) interact / are related to our Items
 
 For all intents and purposes, the matrix defined of our users and how they engage with items is perfectly fine to use as our embeddings. In the below example, let's say it's users video watch time, user 1 engages with item 1 for 90 minutes
 \[
@@ -53,12 +55,16 @@ Our [Vector Similarity Scoring](../../other_concepts/EMBEDDINGS.md#vector-simila
 
 In any other example, a popular video tends to coincide with larger norms, and so our recommendation would probably favor those videos with the Dot product
 
-# Filtering Mechanisms
+# Filtering and Factorization
 Filtering leverages the idea that users who have agreed in the past will agree in the future, based on user similarity or item similarity
 
-In either way we can use embedding matrices for Users $U$ or Items $I$, or a combination of them. Similarity between items is calculated using metrics such as cosine similarity, Pearson correlation, or Jaccard index
+In either way we can use embedding matrices for Queries (Users) $U$ or Items $I$, or a combination of them. Similarity between items is calculated using metrics such as cosine similarity, Pearson correlation, or Jaccard index
 
 To find recommendations, you compare the query (User embedding) to all Item embeddings using similarity metrics (e.g., dot product, cosine similarity), which will ultimately give you the top Items for a User
+
+This example from Google shows how if we have $m$ Playlists who have $n$ songs we can use this co-occurrence matrix, factorize it, and then find similar Playlists. Factorizing these into $k$ dimensions allows us to find the ***Top-K Latent Features*** of each playlist, and ultimately to comapre it to other playlists using geometric vector distance. 
+This is similar to facrotizing User x Item matrix, and then doing a dot product with $n$ items to find what ones would be useful to User. It's a bit odd because we're saying we can compare Track Embeddings to Playlist Embeddings, but ultimately we're calculating the interaction score / goodness score of adding a new Track to a Playlist
+![Google Songs](./images/google_songs.png)
 
 ## Item Content Filtering 
 - Recommends items to a user based on the similarity between items
@@ -260,10 +266,16 @@ Solving for this equation:
 - We could also add in other hidden layers and non-linear (ReLU) layers, or anything else, to capture non-linear relationships
 - We could also change the entire hidden layers to remove the matrix factorization phase, and use the hidden layers as a way to map user features into a projected embedding layer
 
-## Two Towers
-Two Towers will also generate embeddings for users and items, similar to Matrix Factorization, except in this scenario there's one tower for Queries (Users), and one tower for Items
+DNN allows us to reduce latency during serving time by decoupling Query Embedding and Item Embedding creation, but we are still using DNN instead of Matrix lookup so overall it might be slower. We can pre-compute Candidates (Items), and then store them in a Vector Type Database for quick lookup
 
-The Two Towres will allow us to create Dynamic, and maybe even [attended to](../../other_concepts/EMBEDDINGS.md#attention) embeddings, which is different from static embeddings created via Filtering & Matrix Factorization. At the end to get a recommendation it's a similar option where we compute similarity of Query to all Items (maybe using [ScaNN (Scalable Nearest Neighbors)](https://github.com/google-research/google-research/tree/master/scann)) and find Top K
+Here's an example of architecture from Google's Blog
+![Two Towers Example from Google](./images/google_twotowers.png)
+
+## Two Towers
+Two Towers will also generate embeddings for users and items, similar to Matrix Factorization, except in this scenario there's one tower for Queries (Users), and one tower for Items. If we ran Two Towers for the same Factorization problem above about Playlist and Tracks it'd look like this
+![TT Songs](./images/twotowers_songs.png)
+
+The Two Towers will allow us to create Dynamic, and maybe even [attended to](../../other_concepts/EMBEDDINGS.md#attention) embeddings, which is different from static embeddings created via Filtering & Matrix Factorization. At the end to get a recommendation it's a similar option where we compute similarity of Query to all Items (maybe using [ScaNN (Scalable Nearest Neighbors)](https://github.com/google-research/google-research/tree/master/scann)) and find Top K
 
 This will allow us to bypass the cold start problem, and the static embedding problem, but increases our latency as we need to use another DNN call in our Ranking service
 

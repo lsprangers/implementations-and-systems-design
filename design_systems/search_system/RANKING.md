@@ -190,3 +190,6 @@ PageRank can be solved using iterations and traversing web links using the ***po
       - $C(T_i)$ is the number of outbound links on page $T_i$
 
 The iterative approach using sum over in-nodes is typically preferred for large graphs because it avoids the computational cost of matrix inversion, and reduces amount that needs to be stored
+
+## DNN For Ranking
+TODO: Most use cases today use DNN or GBDT for Ranking
