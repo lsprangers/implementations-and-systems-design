@@ -38,7 +38,14 @@ These are some of the resources I frequently use and reference throughout this r
 - [Programiz](https://www.programiz.com): Excellent for DSA implementations and complexity analysis.
 - [Medium Articles]
   - [NVIDIA Recommender Systems](https://medium.com/nvidia-merlin/recommender-systems-not-just-recommender-models-485c161c755e)
-
+- [Spark]
+  - [Spark on Cloudera 1](https://blog.cloudera.com/how-to-tune-your-apache-spark-jobs-part-1/)
+  - [Spark on Cloudera 2](https://blog.cloudera.com/how-to-tune-your-apache-spark-jobs-part-2/)
+  - [Spark on Cloudera 3](https://queirozf.com/entries/apache-spark-architecture-overview-clusters-jobs-stages-tasks)
+  - [RDD vs Dataframe vs Dataset](https://www.databricks.com/blog/2016/07/14/a-tale-of-three-apache-spark-apis-rdds-dataframes-and-datasets.html)
+- [Spark Streaming](https://spark.apache.org/docs/latest/streaming-programming-guide.html)
+  - [Spark Streaming](https://www.databricks.com/blog/2015/07/30/diving-into-apache-spark-streamings-execution-model.html)
+  - [Spark Kubernetes](https://www.linkedin.com/pulse/spark-kubernetes-practitioners-guide-mich-talebzadeh-ph-d-)
 ---
 
 ## 🛠️ Design Systems

@@ -61,5 +61,8 @@
         "vector": "cpp",
         "algorithm": "cpp",
         "unordered_set": "cpp"
+    },
+    "files.watcherExclude": {
+        "**/target": true
     }
 }
