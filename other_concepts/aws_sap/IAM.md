@@ -110,16 +110,24 @@ Security Token Service allows us to retrieve and impersonate IAM roles in other 
 
 Impersonation / Assuming means we can have `role1:account1` and specify, via STS, that `user2:account2` can assume it's identity, meanning user 2 can act inside of account1 with the same persmissions as role1 - similar to `user2:role1:account1` 
 
-### Federated Users and Microsoft AD
+### SSO, Federated Users, and Microsoft AD
 ***Federated Users / Identity Federation*** provides access to externally authenticated users to your AWS account via this STS exchange
 
 Typically happens with corporations that have their own identity system like Active Directory, or if a Web/Mobile App wants to access resources on AWS but you don't want to create a user for the app user, just authenticate
 
+So where can we assume roles from?
+- Straight up `sts:AssumeRole` can be done, and is the most straightforward where we list out users who can do it
+- SAML / OIDC
+    - `AssumeRoleWithSAML` and `AssumeRoleWithWebIdentity` allow us to use other IdP's to authenticate users before they are allowed to assume roles
+        - Amazon Cognito is the AWS IdP that provides OIDC compatibility
+    - `GetSessionToken` works to get the actual session token provided to us from there
+    - Each of these users would be a Federated User, where they authenticate elsewhere and don't have explicit AWS Users
+        - `GetFederationToken` obtains temporary credentials for a federated user, and typically a corporate app has a proxy in network that assigns these OIDC credentials out, and we can allow userrs to authenticate this way
 - Security Access Markup Language (SAML) 2.0 is an open standard used by many providers
+    - This is a ***historic method***, and isn't used much anymore
     - IdP's would have to be SAML 2.0 compliant for us to use them for authentication, and many are
     - Allows us to not create IAM users for each of the users in our SAML 2.0 provider
     - `sts:AssumeRoleWithSAML`
-    - This is a ***historic method***, and isn't used much anymore
 - Web Identity Federation uses OIDC web providers like Google, Facebook, etc. to authenticate clients to AWS
     - `sts:AssumeRoleWithWebIdentity` will get temporary security credentials to access AWS
     - Cognito on AWS is a preferred service to use in the middle instead of STS
@@ -228,15 +236,6 @@ AD Replication
 
 ![AWS IAM ID Flow](./images/aws_iamid_flow.png)
 
-#### Assume Roles
-So where can we assume roles from?
-- Straight up `sts:AssumeRole` can be done, and is the most straightforward where we list out users who can do it
-- SAML / OIDC
-    - `AssumeRoleWithSAML` and `AssumeRoleWithWebIdentity` allow us to use other IdP's to authenticate users before they are allowed to assume roles
-        - Amazon Cognito is the AWS IdP that provides OIDC compatibility
-    - `GetSessionToken` works to get the actual session token provided to us from there
-    - Each of these users would be a Federated User, where they authenticate elsewhere and don't have explicit AWS Users
-        - `GetFederationToken` obtains temporary credentials for a federated user, and typically a corporate app has a proxy in network that assigns these OIDC credentials out, and we can allow userrs to authenticate this way
 
 ##### External ID
 External ID's allow us to mitigate the [Confused Deputy problem](https://docs.aws.amazon.com/IAM/latest/UserGuide/confused-deputy.html)
