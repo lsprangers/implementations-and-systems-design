@@ -6,6 +6,7 @@
   - [Self-Balancing Binary Search Tree](#self-balancing-binary-search-tree)
     - [AVL Tree](#avl-tree)
     - [Red Black Tree](#red-black-tree)
+  - [Segment Tree](#segment-tree)
 - [Graphs](#graphs)
   - [DFS & BFS](#dfs--bfs)
   - [UnionFind](#unionfind)
@@ -25,6 +26,50 @@
   - This usually happens when we insert nodes in order and it becomes all right or left sides
 #### AVL Tree
 #### Red Black Tree
+
+### Segment Tree
+[Article used](https://leetcode.com/articles/a-recursive-approach-to-segment-trees-range-sum-queries-lazy-propagation/)
+
+A segment tree is a Binary Tree where each node represents an interval, and each node would store one or more properties of an interval that'd be queried later on
+
+Most of the time it's segements / indexes of an array, and the total sum, count, or some aggregation over them, which allows us to find a certain aggregation over a range of data in potentially $O(log n)$ time
+
+![LeetCode Segment Tree](./images/lc_segment_tree.png)
+
+- Typically the root holds the entire interval of data we're interested in traversing
+- Each leaf of the tree represents a range of just one single element
+- The internal nodes would represent the merged or unioned result of their children nodes
+- Ideally, each child node would represent about 1/2 of it's parent
+- Implementation:
+  - Single callable function
+  - Recurses down until at leaf node, and stores singular value in leaf node
+  - After exiting later on in recursive call merge the child values via $O(1)$ array lookup
+
+```
+void buildSegTree(vector<int>& arr, int treeIndex, int lo, int hi)
+{
+    if (lo == hi) {                 // leaf node. store value in node.
+        tree[treeIndex] = arr[lo];
+        return;
+    }
+
+    int mid = lo + (hi - lo) / 2;   // recurse deeper for children.
+    buildSegTree(arr, 2 * treeIndex + 1, lo, mid);
+    buildSegTree(arr, 2 * treeIndex + 2, mid + 1, hi);
+
+    // merge build results
+    tree[treeIndex] = merge(tree[2 * treeIndex + 1], tree[2 * treeIndex + 2]);
+}
+
+// call this method as buildSegTree(arr, 0, 0, n-1);
+// Here arr[] is input array and n is its size.
+```
+
+- The more important part is querying
+  - We can't read partial overlaps, it would be too confusing
+  - Need to traverse down until you get to a section that's smaller than your desired interval, and worst case add in from other sections as well
+    - Can hopefully use some internal / middle nodes, and complete the aggregation using other leaf nodes
+- Updating values means finding the leaf node of the actual index, and traversing back up and out to update that leaves parents
 
 ## Graphs
 
