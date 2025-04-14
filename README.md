@@ -27,6 +27,7 @@ Think of it as a structured dump of everything I've read and wanted to document 
 These are some of the resources I frequently use and reference throughout this repo:
 
 - [Leetcode](https://leetcode.com): Great for DSA and Systems Design problems.
+  - [Segment Tree](https://leetcode.com/articles/a-recursive-approach-to-segment-trees-range-sum-queries-lazy-propagation/)
 - [3Blue1Brown](https://www.3blue1brown.com/): Amazing visual explanations for Linear Algebra, Probability, and Deep Neural Networks.
   - Highly recommend the [Attention](https://www.youtube.com/watch?v=eMlx5fFNoYc&vl=en) video for understanding Transformers.
 - [Jay Alammar's Visual Transformer Paper](https://jalammar.github.io/illustrated-transformer/): A fantastic resource for understanding Attention and Transformers.
@@ -46,6 +47,7 @@ These are some of the resources I frequently use and reference throughout this r
 - [Spark Streaming](https://spark.apache.org/docs/latest/streaming-programming-guide.html)
   - [Spark Streaming](https://www.databricks.com/blog/2015/07/30/diving-into-apache-spark-streamings-execution-model.html)
   - [Spark Kubernetes](https://www.linkedin.com/pulse/spark-kubernetes-practitioners-guide-mich-talebzadeh-ph-d-)
+  - 
 ---
 
 ## 🛠️ Design Systems
