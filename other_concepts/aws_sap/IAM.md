@@ -179,7 +179,7 @@ AD Replication
     - We could have HR / Finance as 2 OU's, and each one has dev/stg/prod
     - Or we could have dev/stg/prod and each one has 2 sub OU's
 - If a Management Account creates a Member Account, then it will automatically have an established IAM role inside of that Member Account
-    - This is aclled `OrganizationAccountAccessRole`, and the Management Account can Assume this Role and get full admin permissions on the Member Account
+    - This is called `OrganizationAccountAccessRole`, and the Management Account can Assume this Role and get full admin permissions on the Member Account
     - This role ***could be*** assumed by an IAM user if they're authorizedm but they shouldn't be
 - Multiple strategies for resources inside of Accounts and how to organize it
 - Features
