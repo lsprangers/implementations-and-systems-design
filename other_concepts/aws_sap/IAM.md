@@ -47,6 +47,14 @@
     - `s3:ListBucket`
     - `ec2:StartInstances`
 
+### Principals
+- Principal Element:
+    - The Principal element in the trust policy specifies who can assume the role
+    - Examples of principals:
+        - IAM Users or Roles: arn:aws:iam::123456789012:user/ExampleUser
+        - AWS Services: ec2.amazonaws.com (for EC2 instances)
+        - AWS Accounts: arn:aws:iam::123456789012:root (to allow all users in an account)
+
 ### Effects
 - **Effects** define whether an action is allowed or denied on a resource
 - Key rules:

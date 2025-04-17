@@ -316,3 +316,164 @@ Secure communication begins using Symmetric Encryption
         - HSM does Hashing and KMS doesn't
     - KMS does key replication across regions, HMS can do VPC peering across regional VPCs for cross region clusters / access
     - HSM is what allows TDE in Oracle and SQL Server
+
+# S3
+- `SSE-S3` encrypts S3 objects using keys managed entirely by AWS
+- `SSE-KMS` encrypts S3 objects using keys stored in KMS, whether they're managed by us
+    - Why is this useful?
+        - KMS has CloudTrail logs
+        - If for some reason the S3 bucket was made public, then GET requests would fail unless the user had KMS authorization as well
+        - `s3:putObject` also would require `KMS` authorizations as well for the role the user assumes
+- `SSE-C` encrypts S3 objects with our own keys, and encryption is done server-side
+- Client side is when we encrypt and decrypt data client side
+- Any data in Glacier is AES-256 encrypted with keys under AWS control
+
+## Encryption in Transit
+- AWS S3 exposes:
+    - HTTP endpoint which is not encrypted data
+    - HTTPS endpoint which has encryption in flight
+        - HTTPS is mandatory for `SSE-C`
+        - To enforce, use a Bucket Policy to force `aws:secureTransport`
+
+## S3 Events
+- S3 access logs:
+    - Detailed records for requests into a bucket
+    - May take an hour to deliver
+    - May be incomplete - best effort
+- S3 Events Notifications
+    - Receives notifications for specific S3 events
+    - Typically delivered in seconds, but could take minutes for intense tasks that include versioning or checksums
+    - Destinations for this can be SNS, SQS, Lambda, etc...
+- Trusted Advidor
+    - Check bucket permissions for public exposure
+- AWS Event Bridge
+    - Need to enable CloudTrail object logging onto S3 first
+    - Target can then be Lambda, SQS, SNS, etc...
+
+## S3 Security
+- User based:
+    - IAM policies
+    - IAM defines which API calls should be allowed for a specific user from an IAM console
+- Resource based:
+    - Bucket policies are bucket wide rules
+        - Use for:
+            - Grant public access to bucket
+            - Force objects to be encrypted at upload
+            - Grant access to another Cross-Account
+        - Optional conditions:
+            - `SourceIp` or `VpcSourceIp` can give IP or CIDR, or VPC ID of where a request can come from and be authorized
+            - `SourceVPC` or `SourceVPCEndpoint`
+            - `CloudFront Origin Identity` can explain which CloudFront CDN's can access
+            - MFA
+    - Object Access Control List (Object ACL) is fine grained control over objects
+    - Bucket Access Control List (Bucket ACL) is bucket wide access lists
+- Pre signed URLs
+    - Sign URL with IAM credentials
+        - TTL is usually 1 hour
+        - Users inherit permissions of whoever signed it
+- VPC Endpoint Gateway for S3
+    - When a VPC has an Interet Gateway, and we use the public internet to access a public S3 endpoint
+        - For this you'd put a bucket policy on for `AWS:SourceIp` and you'd use the IGW IP
+    - Instead of a public subet, we can use VPC Endpoint Gateway
+        - This allows our subnet to stay private
+        - All traffic remains on AWS network, and stays private
+        - Then we can directly go to S3 Endpoint
+        - Can have bucket policies on `AWS:SourceVPCE` for VPC Endpoint, or `AWS:SourceVPC` for all resources under that VPC
+- S3 Object Locks
+    - S3 Object Lock is Write Once Read Many (WORM)
+    - Can do same thing for Glacier Vault Lock (i.e. have WORM) and then we lock the policy for future edits
+- S3 Access Points
+    - If we have tons of directories and objects in one S3 bucket, we can create crazy policies, or we can use Access Poiints
+    - Access Points grant Read/Write access to different directories across buckets
+        - Pushes policy from S3, to another resource, i.e. Access Points
+        - These Access Points are granted to different User Groups
+        - Each Access Point has it's own DNS name
+    - VPC Origin
+        - Can be private, so that no traffic goes over internet
+            - Need to create VPC Endpoint from requesting VPC to the Access Point
+            - Need to create Endpoint Policy, Access Point Policy, and S3 bucket Policy for this to work
+    - Multi Region Access Points
+        - Dyanmically routes requests to nearest S3 bucket to the region the user is in
+        - *Syncs / duplicates data between regions for you*
+        - If closest region fails, requests failover to next closest region or our passive choice
+![S3 Regional Access Points](./images/s3_multi_region.png)
+
+- S3 Object Lambda
+    - Allows us to change an S3 Object before it's retrieved by a calling application
+        - Might be used to mask/redact some data as an object is called
+        - Only runs once the object is retrieved
+    - Arch:
+        - You create an Access Point on top of S3
+        - Lambda that can read frmo Access Point
+        - S3 Object Lambda Access Point on top of the Lambda
+        - Calling applications call that Lambda Access Point
+        - ***Can also do this on top of databases too***
+    - These basiaclly allow you to redact and alter data on the fly during read from S3 or Database
+        - Redact, Mask, Create Watermark, Transform XML, etc...
+- DDOS Attacks
+    - Distributed Denial of Service (DDOS) are Network Based Attacks attacks on EC2 instances and web servers can take down web servers
+        - When a service is unavailable b/c of a flood of requests 
+        - SYN Flood (Layer 4): Too many TCP connection requests
+        - UDP Reflection (Layer 4): Get other servers to send big UDP requests
+        - DNS flood attack: Overwhelm DNS so legitimate users can't get IP / DNS Records
+        - Slow Loris: Many HTTP conections are opened and maintained
+    - Application Attacks:
+        - All depend on app configs, caches, etc...
+    - AWS Shield
+        - Standard Shield protects against DDoS attacks for web apps at no additional costs
+            - Covers SYN/UDP Floods, Reflections, and other L3/L4 attacks
+        - Advanced is premium 24/7 DDoS protection
+            - Protects EC2, ELB, Cloudfront, Route53 and others
+            - Also acts as insurance for incurred costs from DDoS attacks on services that run up auto-scaling costs
+            - And there's 24/7 AWS Support
+        - CloudFront and Route53: Protect CDN Cloudfront and Route53 DNS
+            - Separating static resources and placing them on Cloudfront / S3 is always a good practice
+        - AWS WAF: Web Application Firewall can filter specific requests based on rules
+- AWS Web App Firewall (WAF)
+    - Protects web apps from common web exploits on Layer 7
+    - Deploy on:
+        - ALB
+        - API GW
+        - CloudFront (globally edge)
+        - AppSync (GraphQL API's)
+    - ***WAF IS NOT FOR DDOS***
+    - Define Web Access Control Lists (WebACL)
+        - Rules can include IP addresses, HTTP Headers, HTTP body, URI's, etc...
+        - Help protect from XSS, SQL Injection, and other common L7 app exploits
+        - Size constraints
+        - Geo Matching
+        - Rate based rules and rate limiting
+    - Rule Actions:
+        - Count, Allow, Block, CAPTCHA, Challenge
+            - Could Count before Blocking
+    - Managed Rules:
+        - Baseline rule groups protect from common threats / patterns
+        - Use case specific give protection for specific applications like SQL, Windows, etc...
+        - IP Reputation rule groups give us the AWS reputable IP's (spam or scammers)
+        - Bot control managed group can help to reject bots
+    - WAF Logging
+        - CloudWatch Logs
+            - Small SLA's
+        - S3 Bucket
+            - Every 5 minutes
+        - Kinesis Firehose
+            - Only limited by Kinesis SLA's
+    - Architecture with CloudFront
+        - Can setup WebACL's in front of CloudFront
+        - On CloudFront we can create a custom HTTP Header
+            -`X-Origin-Verify:xxxxxx` where `xxxx` is a secret string
+        - ALB behind CloudFront in front of EC2 Web Apps
+        - WAF Firewall on our ALB for headers to filter down to only those headers from CLoudFront with the secret string
+            - Stops anyone from directly accessing the ALB URL
+        - Lambda function from Secrets Manager can replcae the secret on CloudFront and the ALB header filter every X days
+- AWS Firewall Manager
+    - Manage all Firewall rules in all accounts in AWS Organization
+    - Set a security policy which is a common set of security rules
+        - WAF Rules
+        - AWS Shield Advanced
+        - Security groups for EC2, ALB, etc...
+        - AWS Network Firewall on VPC Level
+        - AWS Route53 Resolver DNS Firewall
+        - Policies created at regional level
+        - Rules are automatically applied to new resources as they're created
+    - We'd define all of our rules in WAF, Shield, etc... and then we can use AWS Firewall Manager with AWS WAF to automtate these rules over all new resources
