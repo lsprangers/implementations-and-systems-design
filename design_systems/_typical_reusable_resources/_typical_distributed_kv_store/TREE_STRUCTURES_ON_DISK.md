@@ -26,6 +26,9 @@ So long story short, ***disk writes of sorted data are useful in multiple scenar
 
 The two most common are B+ Trees, and LSMTree's
 
+# Structures
+The [Disk Based Folder](../../_reference%20material/databases%20&%20storage/Disk%20Based/) has more thorough discussions of all of these 
+
 ## B Tree
 
 ### How They Work:
