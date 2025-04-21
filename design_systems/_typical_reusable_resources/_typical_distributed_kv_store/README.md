@@ -198,30 +198,30 @@ The below [Replication](REPLICATION.md) implementations are all covered in the s
     - Replication will allow us to be fault tolerant
 
 ### Combatting temporary failures
-    - If we have a quorum based approach, and one of the nodes is temporarily down, we can use hinted handoffs and sloppy quorum to combat this
-    - During a distributed transaction if one of the nodes is temporarily down, we cannot use it in the quorum vote and the availability of the service degrades
-        - Sloppy quorum allows us to keep a preference list for all nodes so that the first n healthy nodes from the list can handle operations, and if one node is down we can continue down the list
-        - If a node is down that is supposed to handle a request, and coordinator passed quorum vote back somewhere else, then once that initial node is back the receiving node will send that information back, this is a hinted handoff
+- If we have a quorum based approach, and one of the nodes is temporarily down, we can use hinted handoffs and sloppy quorum to combat this
+- During a distributed transaction if one of the nodes is temporarily down, we cannot use it in the quorum vote and the availability of the service degrades
+    - Sloppy quorum allows us to keep a preference list for all nodes so that the first n healthy nodes from the list can handle operations, and if one node is down we can continue down the list
+    - If a node is down that is supposed to handle a request, and coordinator passed quorum vote back somewhere else, then once that initial node is back the receiving node will send that information back, this is a hinted handoff
 ### Combatting permanent failures
-    - We need to speed up detection of these inconsistencies
-    - Merkle Tree’s are a data structure to help us
-        - The values of individual keys are hashed and used as the leaves of the tree
-        - Each parent is a hash of it’s children
-        - They allow us to verify different Merkle Tree Branches to check for inconsistencies, without sending all of the data across the network
-        - ![Merkle Tree Hierarchy](./images/merkle_tree_hierarchy.png)
-    - Each node keeps a Merkle Tree for the range of keys that it hosts on all of it’s virtual nodes
-    - This allows the nodes to determine if the keys in a given range are correct, since the root of the Merkle tree corresponding to the common key ranges can be exchanged between nodes
-    - If they’re the same, no reason for us to check anything else
-        - If they’re different, start traversing
-            - ![Merkle Tree Ring](./images/merkle_tree_ring.png)
-            - ![Merkle Tree Ring Hierarchy](./images/merkle_tree_ring_hierarchy.png)
-        - So now, if a new node is added behind Node A, and it must receive it’s data, then it can copy it over, compute the Merkle tree, and then compare and acknowledge
-        - Due to CAP theorem we must choose, and we choose high availability, this comes from always write requirement, and so even if network between nodes fails we still allow writes
-    - How can we ensure eventual consistency then?
-    - $w + r \gt n$ along with versioning
-    - Versioning allows conflict resolution even during network partitions 
-        - Use write timestamps to figure out which one was written last, or maybe a more important writer vs another
-    - We can force our put API requests to also require some sort of metadata context, and then our get requests also either use or return this data for consumer to reuse if multiple rows returned
+- We need to speed up detection of these inconsistencies
+- Merkle Tree’s are a data structure to help us
+    - The values of individual keys are hashed and used as the leaves of the tree
+    - Each parent is a hash of it’s children
+    - They allow us to verify different Merkle Tree Branches to check for inconsistencies, without sending all of the data across the network
+    - ![Merkle Tree Hierarchy](./images/merkle_tree_hierarchy.png)
+- Each node keeps a Merkle Tree for the range of keys that it hosts on all of it’s virtual nodes
+- This allows the nodes to determine if the keys in a given range are correct, since the root of the Merkle tree corresponding to the common key ranges can be exchanged between nodes
+- If they’re the same, no reason for us to check anything else
+    - If they’re different, start traversing
+        - ![Merkle Tree Ring](./images/merkle_tree_ring.png)
+        - ![Merkle Tree Ring Hierarchy](./images/merkle_tree_ring_hierarchy.png)
+    - So now, if a new node is added behind Node A, and it must receive it’s data, then it can copy it over, compute the Merkle tree, and then compare and acknowledge
+    - Due to CAP theorem we must choose, and we choose high availability, this comes from always write requirement, and so even if network between nodes fails we still allow writes
+- How can we ensure eventual consistency then?
+- $w + r \gt n$ along with versioning
+- Versioning allows conflict resolution even during network partitions 
+    - Use write timestamps to figure out which one was written last, or maybe a more important writer vs another
+- We can force our put API requests to also require some sort of metadata context, and then our get requests also either use or return this data for consumer to reuse if multiple rows returned
 ### Quorum Example
 - Example below for Quorum Read and Writes
     - N = 3
