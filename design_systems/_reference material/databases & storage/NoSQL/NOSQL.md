@@ -1,5 +1,7 @@
 # General NoSQL Databases
 
+TODO: This is all ChatGPT garbage
+
 NoSQL databases are a class of databases designed to handle large-scale, distributed, and unstructured or semi-structured data. Unlike traditional relational databases, NoSQL databases provide flexibility in data modeling and are optimized for specific use cases such as high availability, scalability, and low-latency queries.
 
 ---
@@ -67,12 +69,12 @@ NoSQL databases make tradeoffs between consistency and availability, depending o
 
 ## Data Models and Partition Keys
 
-NoSQL databases use flexible data models to optimize for scalability and performance. Partition keys play a critical role in distributing data across nodes in a cluster.
+NoSQL databases use flexible data models to optimize for scalability and performance. Partition keys play a critical role in distributing data across nodes in a cluster, because they allow us to shard data out into separate nodes which increases throughput and scalability
 
 ### Key-Value Stores
-- **Data Model**: Simple key-value pairs.
-- **Partition Key**: The key is used to determine the partition where the value is stored.
-- **Use Case**: Caching, session management, real-time analytics.
+- **Data Model**: Simple key-value pairs
+- **Partition Key**: The key is used to determine the partition where the value is stored
+- **Use Case**: Caching, session management, real-time analytics
 - **Example**:
 ```json
 {
@@ -134,20 +136,22 @@ Efficient data retrieval is critical in NoSQL databases, especially when dealing
 Indexes allow NoSQL databases to quickly locate data without scanning the entire dataset. Different types of indexes are used depending on the database and query requirements:
 
 1. **Primary Index**:
-   - Automatically created on the partition key.
-   - Used to locate data within a specific partition.
+   - Automatically created on the partition key
+   - Used to locate data within a specific partition
    - Example (DynamoDB):
      - Partition Key: `user_id`
-     - Query: Retrieve all data for `user_id = "user123"`.
+     - Query: Retrieve all data for `user_id = "user123"`
 
 2. **Secondary Index**:
-   - Created on non-primary fields to support additional query patterns.
-   - Useful for querying attributes other than the partition key.
+   - Created on non-primary fields to support additional query patterns
+   - Useful for querying attributes other than the partition key
    - Example (MongoDB):
      - Index on `email` field to allow queries like:
        ```json
        { "email": "john.doe@example.com" }
        ```
+
+TODO: Secondary indexes are basically points but cause bloat sometimes, espeically if we force them across partitions
 
 3. **Composite Index**:
    - Combines multiple fields into a single index to support complex queries.

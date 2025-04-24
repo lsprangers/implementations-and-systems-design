@@ -5,3 +5,5 @@ B-Tree's are a durable, on disk, database storage structure
     - Point Lookups: $O(\log n)$ time complexity.
     - Range Queries: $O(\log n + k)$, where $k$ is the number of matching results
 - B-Trees are commonly used in relational databases for indexing columns, especially when range queries are required
+
+## Implementation
