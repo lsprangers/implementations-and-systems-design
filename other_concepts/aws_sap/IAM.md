@@ -211,7 +211,7 @@ AD Replication
 - Explicit Denies ***always take precedence*** over Any Allows
 - Really very powerful, we can do things like enforce Tags, enforce regions, etc..
 
-![SCP Hierarchy](image.png)
+![SCP Hierarchy](./images/scp_hierarchy.png)
 - In the example above what will happen if we `Deny Athena` in the Management Account SCP?
     - Management Account specifically is not affected by SCP's, so it will be ignored
     - No Account will be able to access Athena
@@ -280,3 +280,153 @@ Guardrails in AWS control tower provide ongoing Governance solutions
 - Prefix List: Predefined list of CIDR's you can share with Secutity Groups, other accounts, etc...
     - Allow us to centrally manage prefixes
 - Route53 Outbound Resolver: Allows us to share our forwarding rules of our DNS services, so we can share this with other accounts so that if we update a DNS list in one account it moves to all other accounts
+
+
+# Example - Azure AD Integration with AWS
+Say there's an Azure AD hosted in Azure Cloud, and we wanted to reuse the user pool in AWS for multiple reasons, how can we go about this?
+
+If your company uses **Azure Active Directory (Azure AD)** in Azure Cloud and you want to reuse it in AWS, you can do following to integrate Azure AD with AWS for **identity federation**, **single sign-on (SSO)**, and **access management**.
+
+---
+
+## 1. Use Azure AD for Identity Federation with AWS IAM
+
+***IAM Identity Center (AWS SSO)*** or ***AWS IAM*** basically allows us to create Federatd Users for AWS. This is what allows us to login to corporate SSO and then access AWS as a `LOBUser/myname`
+
+Once you login you automatically assume a role, and that role can be governed by IAM and SCP policies
+
+- **What It Does**:
+  - Azure AD acts as an **identity provider (IdP)** for AWS, allowing users to authenticate with Azure AD and assume roles in AWS.
+- **How It Works**:
+  - Configure **AWS IAM Identity Center (formerly AWS SSO)** or AWS IAM to trust Azure AD as an external IdP.
+  - Users log in to Azure AD, and Azure AD issues a SAML assertion or OpenID Connect (OIDC) token to AWS.
+  - AWS uses the token to grant access to specific AWS resources based on IAM roles.
+- **Steps**:
+  1. Set up a **SAML 2.0 application** in Azure AD for AWS.
+  2. Configure AWS IAM Identity Center or IAM to trust Azure AD as a SAML IdP.
+  3. Map Azure AD groups to AWS IAM roles for role-based access control.
+- **Use Case**:
+  - Centralized identity management for users across Azure and AWS.
+  - Single sign-on (SSO) for AWS Management Console and CLI.
+
+---
+
+## 2. Use Azure AD with AWS IAM Identity Center (AWS SSO)
+
+This is similar to the above use case, except it allows us to go into multiple accounts 
+
+Would need to use permission sets and group to account mappings
+
+- **What It Does**:
+  - AWS IAM Identity Center integrates with Azure AD to provide SSO for AWS accounts and applications.
+- **How It Works**:
+  - Azure AD is configured as an external IdP for AWS IAM Identity Center.
+  - Users authenticate with Azure AD and are granted access to AWS accounts and roles via AWS IAM Identity Center.
+- **Steps**:
+  1. Enable AWS IAM Identity Center in your AWS account.
+  2. Configure Azure AD as an external IdP in AWS IAM Identity Center.
+  3. Map Azure AD groups to AWS IAM Identity Center permission sets.
+- **Use Case**:
+  - Simplified SSO for multiple AWS accounts.
+  - Centralized user and group management in Azure AD.
+
+---
+
+## 3. Use Azure AD with AWS Cognito for Application Authentication
+
+This AWS Cognito setup would allow us to host applications in AWS, and have them call Azure AD for IdP authentication
+
+Essentially the tight coupling of AWS Services with AWS Cognito handled the app level code, and then Cognito will call Azure AD for authentication, and handle all of the back and forth
+
+Once complete Cognito will issue a token back to the client 
+
+- **What It Does**:
+  - Azure AD acts as an IdP for **Amazon Cognito**, allowing users to authenticate with Azure AD for your applications hosted in AWS.
+- **How It Works**:
+  - Configure Azure AD as an OIDC or SAML IdP in Amazon Cognito.
+  - Users authenticate with Azure AD, and Cognito issues tokens (ID, access, refresh) for use in your application.
+- **Steps**:
+  1. Create a user pool in Amazon Cognito.
+  2. Configure Azure AD as an external IdP in the Cognito user pool.
+  3. Update your application to use Cognito for authentication.
+- **Use Case**:
+  - Applications hosted in AWS that need to authenticate users from Azure AD.
+  - Centralized authentication for multi-cloud applications.
+
+---
+
+## 4. Use Azure AD with AWS Directory Service
+We mention these specifics above, but this would allow us to extend our directory service into AWS
+
+There are many factors here around replication, syncing, and hosting that come into play
+
+Once completed users in our Azure AD (not replicated onto our AWS managed / hosted Azure AD) can authenticate to AWS resources
+
+This is the situation where you setup forest trust or other trust mechanisms between AWS Azure AD and Azure AD on Azure Cloud
+
+- **What It Does**:
+  - Integrate Azure AD with **AWS Managed Microsoft AD** or **Simple AD** to extend your directory services to AWS.
+- **How It Works**:
+  - Set up a **trust relationship** between Azure AD and AWS Managed Microsoft AD.
+  - Users in Azure AD can authenticate to AWS resources that rely on Active Directory (e.g., Windows-based EC2 instances, RDS SQL Server).
+- **Steps**:
+  1. Deploy AWS Managed Microsoft AD in your AWS environment.
+  2. Establish a **forest trust** between Azure AD DS (Azure AD Domain Services) and AWS Managed Microsoft AD.
+  3. Configure AWS resources to use AWS Managed Microsoft AD for authentication.
+- **Use Case**:
+  - Hybrid cloud environments where Active Directory is required for authentication.
+  - Seamless integration of Windows-based workloads across Azure and AWS.
+
+---
+
+## 5. Use Azure AD for API Gateway Authentication
+This is just using Azure AD as the OIDC provider for API GW
+
+- **What It Does**:
+  - Azure AD acts as an OIDC IdP for **Amazon API Gateway**, enabling secure access to APIs hosted in AWS.
+- **How It Works**:
+  - Configure Azure AD as an OIDC IdP in API Gateway.
+  - Users authenticate with Azure AD, and API Gateway validates the OIDC token before granting access.
+- **Steps**:
+  1. Register your API in Azure AD as an application.
+  2. Configure API Gateway to use Azure AD as an OIDC IdP.
+  3. Update your API clients to authenticate with Azure AD.
+- **Use Case**:
+  - Secure API access for users authenticated via Azure AD.
+
+---
+
+## 6. Use Azure AD for Cross-Cloud SSO
+- **What It Does**:
+  - Azure AD provides a unified SSO experience for applications and resources across Azure and AWS.
+- **How It Works**:
+  - Configure Azure AD as the central IdP for both Azure and AWS.
+  - Users authenticate once with Azure AD and gain access to resources in both clouds.
+- **Steps**:
+  1. Set up Azure AD as an IdP for AWS (via SAML or OIDC).
+  2. Configure Azure AD Conditional Access policies for cross-cloud access.
+- **Use Case**:
+  - Unified identity management for multi-cloud environments.
+
+---
+
+## Comparison of Options
+
+| **Option**                          | **Use Case**                                                                 | **Integration Type**       |
+|-------------------------------------|-----------------------------------------------------------------------------|----------------------------|
+| Identity Federation with IAM        | Centralized identity management and SSO for AWS resources.                  | SAML or OIDC               |
+| AWS IAM Identity Center (AWS SSO)   | Simplified SSO for multiple AWS accounts.                                   | SAML                       |
+| Cognito for Application Auth        | Authenticate Azure AD users for AWS-hosted applications.                    | OIDC or SAML               |
+| AWS Directory Service               | Extend Azure AD to AWS for Windows-based workloads.                         | Active Directory Trust     |
+| API Gateway Authentication          | Secure API access for Azure AD users.                                       | OIDC                       |
+| Cross-Cloud SSO                     | Unified SSO experience across Azure and AWS.                                | SAML or OIDC               |
+
+---
+
+## Best Option for Your Use Case
+- **For SSO Across AWS Accounts**: Use **AWS IAM Identity Center** with Azure AD as the IdP.
+- **For Application Authentication**: Use **Amazon Cognito** with Azure AD as the IdP.
+- **For Windows Workloads**: Use **AWS Managed Microsoft AD** with a trust relationship to Azure AD.
+- **For APIs**: Use **API Gateway** with Azure AD as an OIDC IdP.
+
+
