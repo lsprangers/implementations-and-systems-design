@@ -15,6 +15,7 @@
       - [Base Models](#base-models)
         - [Base Model Architecture](#base-model-architecture)
         - [Masked Language Modeling Architecture](#masked-language-modeling-architecture)
+          - [MLM Example](#mlm-example)
         - [Next Sentence Prediction Architecture](#next-sentence-prediction-architecture)
       - [Extending Base Models](#extending-base-models)
         - [Fine Tuning Architecture](#fine-tuning-architecture)
@@ -165,6 +166,10 @@ TODO: Is below correct? Semantic vs Syntactic...Semantic is "underlying meaning 
 ## BERT
 BERT (Bidirectional Encoder Representations from Transformers) goes a step beyond [Word2Vec](#word2vec) as it is an all around ***language representation model*** that can provide contextual word and sentence embeddings for specific supervised tasks
 
+BERT is technically an ***Encoder Only Model*** even though it has a decoder stack, the Attention is All You Need Paper references Encoder-Decoder, which BART is, but BERT is Encoder only
+
+BERT doesn't generate text, but it produces token embeddings that are great for Classification, Sentence Similarity, Sentiment Analysis, and NER / Token Level Tasks
+
 ***Contextual Word and Sentence Embeddings*** is a loaded phrase, but it basically means it can help encode any structure of text, for any vocabulary, and it does this through word tokenization and [attention](#attention) respectively
 
 ***Transfer Learning*** is the idea that the semi-supervised training of of a BERT model is just for creating weights and parameters, and that the ideal output of this phase is just the BERT model with said weights and parameters. Once this is done the model itself can have extra layers tacked onto it / updated and be used in a wide range of downstream tasks like sentence classification, word embeddings, report summary, etc...
@@ -236,7 +241,26 @@ BERT training has a similar setup to Word2Vec where we use a certain context siz
         - Replace $w_i$ with a random token 10% of the time
         - Do nothing the last 10% of the time
     - Finally, we can use $T_i$ to predict our actual output token, and that will be compared with $w_i$ using cross entropy loss
-    - TODO: wtf do they mean above? I get if we replace the token with `[MASK]` then our BERT model will get used to that token and start to attend to other tokens with it, but if we're still doing it 80% of the time I don't get how the other 20% is strong enough to fix our model?
+
+###### MLM Example
+- Original sentence: "The quick brown fox jumps over the lazy dog"
+- Randomly select our masked $w_i$ to be "jumps"
+- 80% of the time:
+  - Input: `"The quick brown fox [MASK] over the lazy dog"`
+  - Expected Output $T_i$: `'jumps'`
+  - Purpose: So model can learn to predict the masked word given context
+  - Loss: Cross Entropy
+    - We get the output distribution of the final hidden layer and compare it to the word we `[MASK]`-ed
+- 10% of the time:
+  - Input: `"The quick brown fox apple over the lazy dog"`
+  - Expected Output $T_i$: `'jumps'`
+  - Purpose: So model doesn't rely on `[MASK]` token, but tbh I don't understand the reasoning here.
+    - Where does the sentence predict `jumps` would be applied to? The end?
+- 10% of the time:
+  - Input: `"The quick brown fox jumps over the lazy dog"`
+  - Expected Output $T_i$: `'jumps'`
+  - Purpose: Model learns to predict the word even when it's visible
+- $\text{Loss} = -\sum_{i \in M} \log P_{\text{model}}(w_i \mid \text{context})$
 
 ##### Next Sentence Prediction Architecture
 - ***Training Objective:*** to predict, in a binary fashion, the next sentence from a possible next sentence that's presented to us

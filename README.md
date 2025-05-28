@@ -48,6 +48,7 @@ These are some of the resources I frequently use and reference throughout this r
   - [Spark Streaming](https://www.databricks.com/blog/2015/07/30/diving-into-apache-spark-streamings-execution-model.html)
   - [Spark Kubernetes](https://www.linkedin.com/pulse/spark-kubernetes-practitioners-guide-mich-talebzadeh-ph-d-)
   - 
+- [Udemy AWS Solution Architect Course](https://www.udemy.com/course/aws-solutions-architect-professional/)
 ---
 
 ## 🛠️ Design Systems
