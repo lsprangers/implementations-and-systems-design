@@ -7,8 +7,15 @@ This whole fuckin section is going to be on serverless Dynamo I bet
 - No disk space, max object size is 400KB
     - Anything larger store in S3 and store reference in DynamoDB
 - Capacity and provisioning
-    - WCU
-    - RCU
+    - ***Write Capacity Unit (WCU)***: Governs write throughput
+        - 1 WCU = 1 write per second for an item up to 1KB in size
+        - Item larger than 1KB consumer more than 1 WCU, and it's always rounded up
+        - Dynamo Streams does not consume WCU's
+    - ***Read Capacity Unit (RCU)***: Governs read throughput
+        - 1 RCU = 1 *strongly consistent read*, or 2 *eventually consistent reads* per second
+        - For items up to 4KB in size
+        - DynamoDB Streams also does not consume RCU
+    - Only direct reads and writes from DynamoDB consume W/R CU's
     - Autoscaling
     - On Demand
 - Supports CRUD ops
