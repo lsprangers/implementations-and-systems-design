@@ -1,0 +1,164 @@
+# Monitoring
+Most is done via CloudWatch
+
+# CloudWatch Metrics
+- Provided by many AWS Services out of the box
+- EC2 standard is 5 minutes
+- Detailed monitoring is every 1 minute
+- EC2 RAM is not a built in Metric
+    - Need to create custom metrics for RAM
+- CloudWatch Dashboards display metrics and alarms, and can do so across regions
+
+## CloudWatch Alarms
+- Can trigger EC2 actions (reboot, terminate, stop, recover, etc)
+- Alarms typically go through EventBridge which can interact with even more AWS Services and includes filtering
+- Typical use case is to monitor critical instances, and if a status check fails we restart
+    - Allows EC2 to keep public and private IP's
+    - Can also interact with AutoScaling groups, SNS, SQS, or Lambda
+- Can also sent into EventBridge that can interact with Lambda, Step Functins, Kinesis, etc... 
+
+## CW Synthetics Canary
+- Can upload custom code to monitor and interact with API's, URLs, websites, and other resources
+- Helps us to mimic customers in a repeatable way with our own code
+- Integration with CW Alarms and EventBridge
+- Helps us to check the availability and latency of our endpoints
+- Common scenario is updating DNS records based on bad mappings
+- node or python
+    - Programmatic access to headless chrome browser
+- Can run once or on a regular schedule
+- Blueprints:
+    - *Heartbeat monitor*: Load URL, store screenshot and HTTP archive file
+    - *API Canary*: Test basic read and write functions of REST API
+    - *Broken Link checker*: Check all links inside URL that you want to test
+    - *Visual monitoring*: Compare a screenshot talen during a canary run with base screenshot
+    - *Canary recorder*: Used w CW Synthetics recorder to record actions on a website and automatically create a script for that
+    - *GUI workflow builder*: Verifies that actions can be taken on your webpage
+
+# CloudWatch Logs
+- ***Sources***:
+    - SDK
+    - CW Logs Agent
+    - CW Unified Agent
+    - Native AWS Service Integration
+        - Beanstalk has collcetion of logs frmo app
+        - ECS collection from containers
+        - AWS lambda collection from function logs
+        - VPC flow logs 
+        - API GW requests and routing
+        - CloudTrail based on filter
+        - Route53 DNS routing queries
+        - CW Log agents on EC2 machines or other HTTP services
+- Mechanisms:
+    - ***Log Groups***: Arbitrary name for grouping of different logs
+    - ***Log Stream***: Instances within application / log files / containers
+    - Log Expiration policies over the actual streams and logs themselves
+        - Never expire, 30 days, etc...
+        - Can write to S3 if desired and delete from CW Log
+- Encrypt with KMS
+- CW Logs can output to other AWS Services (Sinks)
+    - S3
+    - Kinesis Data Streams
+    - Kinesis Data Firehose
+    - Lambda
+    - ElasticSearch (via Lambda integration)
+- Metric Filter & Insights
+    - Can use filter expressions
+        - Find specific IP in log, and get COUNT of logs including it
+        - Count occurrence of ERROR with this IP
+        - Filters here can trigger CW Alarms based on thresholds
+    - CW Logs Insights allows us to store and regularly run queries and even dashboard results
+        - Blueprint and OOTB queries included
+- CW Logs Export:
+    - S3 Export can just dump into S3 
+        - Must encrypt via SSE-S3 or SSE-KMS
+        - Log data can take up to 12 hours to be available for export
+        - MUST USE S3 API to create export, it's not automated
+        - Not real time
+    - CW Logs Subscriptions
+        - Real time based on Subscriptions Filter
+        - Filter tracks logs coming in, filters down to ones based on Sub Filter, and can send to any Sink in real time
+            - ElasticSearch (via managed lambda) in real time
+            - Firehose near real time into S3
+                - **Real time is always lambda, near real time is firehose which is less expensive and scalable
+            - Custom lambda
+            - KDStreams
+                - Allows for real time stream querying via KData Analytics as well
+        - CW Logs Aggregation
+            - Multi Account and Multi Region
+            - Do this via Subscription Filter, and then ***Must write into Kinesis Data Stream into Kinesis Data Firehose***
+                - Typically do this and send into Central S3 cyber account or something
+    - CW Agent - Integration with SSM
+        - Install CW Agent using SSM Run command
+        - Automatically sets up on new EC2 instances
+            - Some AMI's have SSM already installed
+        - Installation options:
+            - SSM Run Command
+            - SSM State Manager
+            - Storing config in SSM Parameter Store and downloading onto EC2 
+
+# EventBridge
+- FKA CW Events
+- Can schedule Cron Jobs (scheduled scripts) for certain services like Lambda
+- Event Pattern
+    - Can react to a service doing something
+    - IAM Root user sign in
+        - Send message into SNS topic to email everyone, b/c root user login is bas
+    - Trigger lambda functions, etc...
+- Sources:
+    - EC2
+    - CodeBuild
+    - S3
+    - Trusted Advisor
+    - CloudTrail (any API call in AWS acct)
+    - Schedule / Cron / Time
+- Filters:
+    - Can base on resources, event type, etc...and info based on source
+- Destinations:
+    - Lambda
+    - AWS Batch
+    - ECS 
+    - EC2
+        - Specific actions like start, stop, download SSM
+    - SQS
+    - SNS
+    - Kinesis 
+    - CodePipeline
+    - Step Functions
+    - etc..
+- EventBridge has Default Event Bus which all AWS Services feed into
+    - 3rd party Partner Event Bus as well
+        - Zendesk
+        - Datadog
+        - etc...
+        - Can send events directly into Partner Event Bus, which helps us to react to events outside of AWS Acct
+    - Custom event bus
+        - For our own applications and usage
+    - Event buses can be accessed cross-account based on resource access policies
+- Set retention rate for replaying and archiving
+    - Allow us to debug and fix and replay events
+- Schema Registry
+    - Holds format and K:V of Source JSON information
+    - Schema Registry allow us to generate code for our app that can interact with EventBridge
+        - Basically an rpc / avro file to generate GET and PUT methods for us
+- Reosurce Based Policies
+    - Allow us to manage permissions on Event Bus level
+    - Aggregate all acct Events into centralized Event Bus is a good example
+
+# XRay
+- Visual analysis of application
+- Allows for tracing capabilities
+- Similar to Datadog traces
+- Helps understanding network calls, latency, and calls across services
+    - Tracing requests across microservices
+    - Integrations:
+        - EC2 / ECS with XRay agents
+        - Lambda function box tick
+        - Beanstalk native integration box tick
+        - API GW (helps 504 errors)
+    - XRay agent needs IAM permissions to XRay
+
+# AWS Personal Health
+- Shows how outages, maintenance, and AWS errors will affect your resources
+- Can aggregate over accounts into 1 place
+- Can get these events into EventBridge
+    - Can invoke lambda / SNS and write into MS Teams, Slack, Email, etc
