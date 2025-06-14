@@ -163,7 +163,7 @@ TODO: Logistic regression
 ## Graph
 I can really only think of PageRank off the top of my head, and in PageRank the Features are taken from a graph linkage structure, but it doesn't need to be ran on a graph engine. Most of the time we calculate PageRank scores offline, and then for a specific query we use PageRank as a feature along with other ranking mechanisms. 
 
-Page Rank simply helps us calculate "page importance", but we still need to compare a query to web page terms and themes by doing lookups based on [Document and Query Embedding Similarity](../../other_concepts/EMBEDDINGS.md#embeddings)
+Page Rank simply helps us calculate "page importance", but we still need to compare a query to web page terms and themes by doing lookups based on [Document and Query Embedding Similarity](../../nn_and_llm/EMBEDDINGS.md#embeddings)
 
 ### Page Rank
 An algorithm used by Google Search to rank web pages. It measures the importance of a page based on the number and quality of links to it. PageRank can be used anywhere, not just in Ranking, but makes sense to put it here

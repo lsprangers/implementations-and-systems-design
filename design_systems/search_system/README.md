@@ -56,7 +56,7 @@ Search Systems (also Recommendation systems since we recommend something back) a
 
 All of these things are queries and we'd expect different content to be returned
 
-For a further look at [Embeddings](../../other_concepts/EMBEDDINGS.md#embeddings) check out the sub-document
+For a further look at [Embeddings](../../nn_and_llm/EMBEDDINGS.md#embeddings) check out the sub-document
 
 Youtube will typically return Videos, Google will return almost any content type, App Store would return applications, and Facebook might return posts / users (friends)
 
@@ -69,7 +69,7 @@ An Example from Nvidia
     - Users have a history of item usage
 - A ***query*** comes in at some time, usually from a user, and we would recommend items for that query
     - A query can be considered the general context / information a system uses to make recommendations
-- An ***[embedding](../../other_concepts/EMBEDDINGS.md#embeddings)*** is a way to create numeric representations of items, users, and queries which help us in the steps below
+- An ***[embedding](../../nn_and_llm/EMBEDDINGS.md#embeddings)*** is a way to create numeric representations of items, users, and queries which help us in the steps below
 - Recommendation Scenarios:
     - *Log-On:* When a user logs on and the system will recommend items to them
     - *Search:* When a user queries for a specific item and we return items based on that query
@@ -105,13 +105,13 @@ There's many still used today, but for the most part systems require utilizing c
 
 
 ## Embeddings
-[Embeddings](../../other_concepts/EMBEDDINGS.md#embeddings) are a way to create dense, numeric representations, that can have geometric operations like subtraction, addition, and "closeness", performed on them
+[Embeddings](../../nn_and_llm/EMBEDDINGS.md#embeddings) are a way to create dense, numeric representations, that can have geometric operations like subtraction, addition, and "closeness", performed on them
 
 - Types:
-    - [Word Embeddings](../../other_concepts/EMBEDDINGS.md#bert-word-embeddings) are how we turn words into vectors, and was the start of most embedding models...everything changed when we started to use [attention](../../other_concepts/EMBEDDINGS.md#attention)
-    - [Sentence Embeddings](../../other_concepts/EMBEDDINGS.md#bert-sentence-embeddings) are basically just aggregations of word embeddings, but things get a bit tricky and we start using multiple hidden layers
-    - [Document Embeddings](../../other_concepts/EMBEDDINGS.md#bert-sentence-embeddings) are basically just concatenated or aggregated sentence embeddings
-    - [User Embeddings](../../other_concepts/EMBEDDINGS.md#user-embeddings) are typically created using User-Item interactions, along with other features like demographics, click through data, or history
+    - [Word Embeddings](../../nn_and_llm/EMBEDDINGS.md#bert-word-embeddings) are how we turn words into vectors, and was the start of most embedding models...everything changed when we started to use [attention](../../nn_and_llm/EMBEDDINGS.md#attention)
+    - [Sentence Embeddings](../../nn_and_llm/EMBEDDINGS.md#bert-sentence-embeddings) are basically just aggregations of word embeddings, but things get a bit tricky and we start using multiple hidden layers
+    - [Document Embeddings](../../nn_and_llm/EMBEDDINGS.md#bert-sentence-embeddings) are basically just concatenated or aggregated sentence embeddings
+    - [User Embeddings](../../nn_and_llm/EMBEDDINGS.md#user-embeddings) are typically created using User-Item interactions, along with other features like demographics, click through data, or history
     - We can create embeddings for almost anything, but at the end of the day the embeddings need to make sense for what we want to do, which is typically find "similar" things, or find geometric interpretations of "things" like Paris is to France as Berlin is to Germany
 
 # Scalable, Real Serving Systems
@@ -151,7 +151,7 @@ Once the filtering is done, we can send things through to Scoring
 ## Scoring
 Given a user coming online, or a query being submitted, how do we actually obtain a set of items to present? This is the main focus of Retrieval and Scoring, sometimes called Ranking, and there are even some Re-Ranking steps involved...
 
-For a [Matrix Factorization](../../other_concepts/EMBEDDINGS.md#matrix-factorization) technique, we'd have the static embeddings sitting in an API or on disk somewhere for us to look up at query time. We can simply look things up from the User Embedding Matrix to get our query embedding $q_u$
+For a [Matrix Factorization](../../nn_and_llm/EMBEDDINGS.md#matrix-factorization) technique, we'd have the static embeddings sitting in an API or on disk somewhere for us to look up at query time. We can simply look things up from the User Embedding Matrix to get our query embedding $q_u$
 
 For a DNN model we need to run an inference forward-pass to compute the query embedding at query time by using the weights that were trained from [DNN Updates](#dnn-updates) $q_u = \phi(u)$
 

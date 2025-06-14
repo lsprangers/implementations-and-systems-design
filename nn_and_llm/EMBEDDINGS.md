@@ -22,23 +22,6 @@
         - [Fine Tuning Examples](#fine-tuning-examples)
     - [BERT Word Embeddings](#bert-word-embeddings)
     - [BERT Sentence Embeddings](#bert-sentence-embeddings)
-- [Attention](#attention)
-  - [Self Attention](#self-attention)
-    - [Example](#example)
-    - [How Self Attention Works](#how-self-attention-works)
-    - [Key, Query, and Value Matrices](#key-query-and-value-matrices)
-    - [Multi-Head Attention](#multi-head-attention)
-    - [Positional Encoding](#positional-encoding)
-    - [Residual Connections and Normalization](#residual-connections-and-normalization)
-    - [Summary of Self Attention](#summary-of-self-attention)
-    - [Context Size and Scaling Challenges](#context-size-and-scaling-challenges)
-  - [Encoder-Decoder Attention](#encoder-decoder-attention)
-    - [How Encoder-Decoder Attention Works](#how-encoder-decoder-attention-works)
-    - [Transformer Architecture for Encoder-Decoder Attention](#transformer-architecture-for-encoder-decoder-attention)
-    - [Key Differences from Self Attention](#key-differences-from-self-attention)
-    - [Training and Loss](#training-and-loss)
-    - [Visual Representation](#visual-representation)
-    - [Summary of Encoder-Decoder Attention](#summary-of-encoder-decoder-attention)
 - [User Embeddings](#user-embeddings)
 - [Embeddings vs Autoencoder vs Variational Autoencoder](#embeddings-vs-autoencoder-vs-variational-autoencoder)
   - [Embeddings](#embeddings-1)
@@ -93,7 +76,7 @@ Text Embeddings are one of the harder things to figure out, but there are some s
 
 - Training Word2Vec and BERT both involved semi self-supervised training where they take online corpus as input and basically use contextual words $w_{i-k,i+k}$ to try and create an embedding for a current word $w_i$
 - [Word2Vec](#word2vec) was one of the original ideas for text embeddings - it essentially acts as an autoencoder to create ***static embeddings*** for each word in a dictionary
-- [BERT](#bert) on the other hand, through [attention](#attention), can create ***contextual*** embeddings for words, sentences, and entire documents
+- [BERT](#bert) on the other hand, through [attention](./ATTENTION.md#attention), can create ***contextual*** embeddings for words, sentences, and entire documents
 - [GPT](#gpt-3) is an autoregressive transformer model in the same transformer "family" as [BERT](#bert), but it is ***unidirectional*** where BERT is ***bidirectional*** (which is constantly repeated in the paper)
     - GPT is good for text-to-text tasks like question answering, but like BERT we can pull from the middle hidden layers during it's self-attention steps to find word embeddings
 
@@ -170,13 +153,25 @@ BERT is technically an ***Encoder Only Model*** even though it has a decoder sta
 
 BERT doesn't generate text, but it produces token embeddings that are great for Classification, Sentence Similarity, Sentiment Analysis, and NER / Token Level Tasks
 
-***Contextual Word and Sentence Embeddings*** is a loaded phrase, but it basically means it can help encode any structure of text, for any vocabulary, and it does this through word tokenization and [attention](#attention) respectively
+***Contextual Word and Sentence Embeddings*** is a loaded phrase, but it basically means it can help encode any structure of text, for any vocabulary, and it does this through word tokenization and [attention](./ATTENTION.md#attention) respectively
 
 ***Transfer Learning*** is the idea that the semi-supervised training of of a BERT model is just for creating weights and parameters, and that the ideal output of this phase is just the BERT model with said weights and parameters. Once this is done the model itself can have extra layers tacked onto it / updated and be used in a wide range of downstream tasks like sentence classification, word embeddings, report summary, etc...
 
 BERT training has a similar setup to Word2Vec where we use a certain context size to help us model a specific word, but the embeddings can't necessarily be saved because the output layer (embedding) depdends on the hidden layers...therefore we need to pass a word through with context to get an embedding
 
-***Bidirectionality*** is the big buzz word throughout this paper, and the paper mentioned OpenAI's GPT models multiple times discussing how they only have unidirectional architecture in the [attention](#attention) layers which ultimately restricts it's abilities in some downstream tasks like sentence classification and question answering
+***Bidirectionality*** is the big buzz word throughout this paper, and the paper mentioned OpenAI's GPT models multiple times discussing how they only have unidirectional architecture in the [attention](./ATTENTION.md#attention) layers which ultimately restricts it's abilities in some downstream tasks like sentence classification and question answering
+
+BERT itself is...useless? Meaning the model out of the box doesn't have an exact perfect use case (outside of word / sentence embeddings) and for most successful NLP projects it needs to have a final layer trained
+
+Most companies don't actually use BERT out of the box, most companies will fine-tune on top of it and then distill it to lower memory and inference footprint
+| Use Case | Head on Top of BERT |
+| --------- | --------- |
+| Sentiment Analysis | `[CLS]` Token &rarr; Dense &rarr; SoftMax | 
+| Named Entity Recognition (NER) | Per Token &rarr; Dense &rarr; CRF or SoftMax |
+| Question Answering | Two linear layers &rarr; Start / End Token Logits |
+| Sentence Similarity | Mean / CLS pooling &rarr; Dense &rarr; Cosine / Classifier |
+| Retrieval | Dual encoders (query / doc) &rarr; VectorDB |
+| Re-Ranking | Cross-encoder (CLS output) &rarr; Score |
 
 ### Training
 - BERT is designed to pre-train deep (large context) bi-directional (forwards and backwards) representations from unlabeled text by jointly conditioning on left and right context in each layer
@@ -204,7 +199,10 @@ BERT training has a similar setup to Word2Vec where we use a certain context siz
     - $S_i$ is our segment encoding which represents the learned positional embedding for our token in either segment sentence A or B
         - In our inference time examples for embeddings most people just fill it with `0's` or `1's` depending on which sentence it's apart of
 
-- Based on bi-directional Transformer encoder architecture released in Viswani 2017, which uses [Attention](#attention) mechanisms like self-attention and Bahdanau attention to allow contextual information to flow into encoder states
+- Based on bi-directional Transformer encoder architecture released in Viswani 2017, which uses [Attention](./ATTENTION.md#attention) mechanisms like self-attention to allow contextual information to flow into encoder states
+  - I used to believe BERT also uses Bahdanau attention, but that's in encoder-decoder architectures, where decoder computes attention over encoder outputs to select relevant context for each generated token
+  - ***BERT IS NOT A DECODER*** - there's no secondary sentence like output / target to attend over! We simply just attend to our input WordPiece embeddings
+  - Other transformers like TP, BART, and some GPT models do have cross-attention which is similar to Bahdanau
 - BERT uses bi-directional self-attenion, while other models like GPT use constrained left-to-right self-attention
     - Left-to-right attention means for any token / word $w_i$ it can only attent to (get attention /context from) words to the left i.e. $w_{0, i-1}$
 - The input token sequence can be either a single sentence or a pair of sentences, which allows for MLM and NSP tasks mentioned above
@@ -214,14 +212,13 @@ BERT training has a similar setup to Word2Vec where we use a certain context siz
         - In this way we can reuse the embedding for the word "embeddings", which will save space over time
         - `em` in this scenario is the same as the one in "go get em" because it's at the start, but `###bed` is not equivalent to `bed` in the sentence `I went to bed`
         - Tokenizer will continuously try to split words it doesn't know, and as a worst case fallback decompose into letters
-    - TODO: Check above, I think that's right but might miss some stuff about WordPiece
 - There are special tokens throughout which help us to have dynamic input representations and language modeling tasks
     - `[CLS]` represents a ***special classification token*** to represent start of sentences, our final end sentences, and tokens we wish to predict
         - The final hidden state for this token represents our aggregate sequence representation for the entire sentence for classification tasks
             - It should have all of hte info of the sentence, and would be the feature input to our classification layer
     - `[SEP]` marks the separation of two sentences
         - We utilize this with a *learned embedding vector* to update embeddings whether they're in sentence A or B
-            - This is just another piece of [Attention](#attention), except here the attended to portion is sentence placement, which would affect our tokens vector by updating it with sentence A or B context
+            - This is just another piece of [Attention](./ATTENTION.md#attention), except here the attended to portion is sentence placement, which would affect our tokens vector by updating it with sentence A or B context
 - Our input representation is created by summing the token, segment, and positional embeddings - $SUM(T_i, S_i, P_i)$
     - Basically it's a representation of our token's actual word embedding, it's sentence, and it's position in the sentence
     - TODO: `[CLS]` token is just at the front - I thought this wold be at the end? Why would we use the final hidden layer of the first token?
@@ -371,247 +368,6 @@ Why does this work?
 ### BERT Sentence Embeddings
 - Taking the above example, the typical way to get sentence embeddings is to `SUM` or `AVG` the second to last hidden state for each token in the sentence to achieve a sentence embedding
 
-# Attention
-Attention is what separates static embeddings from dynamic embeddings - they allow word embeddings to be updated, aka attended to, by the contextual words surrounding them
-
-Attention stemmed from NLP Seq2Seq Tasks like next word prediction, and translation where using the surrounding context of the word was one of the major breakthroughs in achieving better Seq2Seq results
-
-We need to remember that the embedding for "bank" *is always the same Embedding in the Metric Space* in these scenario's, but by attending to it with Attention, we can change it's position! It's as simple as that, so at the end of attending to the vector, the vector for bank in river bank may point in a completely different direction than the vector for bank in bank vault - just because of how the other words add or detract from it geometrically in its Metric Space. Bank + having river in sentence moves vector in matrix space closer to a sand dune, where Bank + teller in sentence moves it closer to a financial worker
-
-How is this done? Attention mechanisms in our DNN models. There are multiple forms of Attention including Self Attention, Encoder-Decoder Attention, and Bahdanau Attention - each of them help to attend to a current query word / position based on it's surroundings. A single head of this Attention mechanism would only update certain "relationships", or attended to geometric shifts, but mutliple different Attention mechanisms might be able to learn a dynamic range of relationships
-
-All of these Attention mechanisms are tunable matrices of weights - they are learned and updated through the model training process, and it's why we need to "bring along the model" during inference...otherwise we can't use the Attention!
-
-## Self Attention
-
-Self Attention is a mechanism that uses context words (**Keys**) to update the embedding of a current word (**Query**). It allows embeddings to dynamically adjust based on their surrounding context.
-
-### Example
-Consider the phrase "fluffy blue creature." The embedding for "creature" is updated by attending to "fluffy" and "blue," which contribute the most to its contextual meaning.
-
-![Fluffy Blue Attention](./images/fluffy_blue_creature.png)
-
-### How Self Attention Works
-TLDR;
-- The Query vector $Q_i$ is the current word
-- The Key vector is an embedding representing every other word $K_j \forall  {j \neq i} $
-    - We multiply the Query by every Key to find out how "similar", or "attended to" each Query should be by each Key $Q_i \cdot K_j$
-- Then we softmax it to find the percentage each Key should have on the Query
-- Finally we multiply that softmaxed representation by the Value vector, which is the input embedding multipled by Value matrix, and ultimately allow each Key context word to attend to our Query by some percentage
-
-[SelfAttention](./images/self_attention.png)
-
-In depth mathematical explanation below
-
-1. **Input Transformation**:
-   - Each input embedding \( x_i \) is transformed into three vectors: **Query (Q)**, **Key (K)**, and **Value (V)**
-   - These are computed by multiplying the input embedding with learned weight matrices:
-     \[
-     q_i = x_i \cdot W_Q, \quad k_i = x_i \cdot W_K, \quad v_i = x_i \cdot W_V
-     \]
-![QKV](./images/qkv.png)
-2. **Attention Calculation**:
-   - **Step 1**: Compute attention scores by taking the dot product of the Query vector \( q_i \) with all Key vectors \( k_j \):
-     \[
-     \text{Score}_{ij} = q_i \cdot k_j
-     \]
-   - **Step 2**: Scale the scores to prevent large values:
-     \[
-     \text{Scaled Score}_{ij} = \frac{\text{Score}_{ij}}{\sqrt{d_k}}
-     \]
-    - Where \( d_k \) is the dimensionality of the Key vectors
-    - As the size of the input embedding grows, so does the average size of the dot product that produces the weights 
-        - Remember dot product is a scalar value
-        - Grows by a factor of $\sqrt{d_k}$ where k = num dimensions
-        - Therefore, we can counteract this by normalizing is via $\sqrt{d_k}$ as the denominator 
-   - **Step 3**: Apply softmax to convert scores into probabilities:
-     \[
-     \text{Attention Weight}_{ij} = \text{softmax}(\text{Scaled Score}_{ij})
-     \]
-   - **Step 4**: Compute the weighted sum of Value vectors:
-     \[
-     Z_i = \sum_j \text{Attention Weight}_{ij} \cdot V_j
-     \]
-![Attention Calc](./images/attention_calc.png)
-3. **Output**:
-   - The output \( Z_i \) is a context-aware representation of the word \( i \), influenced by its relationship with other words in the sequence.
-
-
-### Key, Query, and Value Matrices
-
-- **Query (Q)**:
-  - Represents the word being attended to.
-  - Used to calculate attention scores with all Keys.
-
-- **Key (K)**:
-  - Represents the context words being compared to the Query.
-  - Used to compute the relevance of each context word to the Query.
-
-- **Value (V)**:
-  - Represents the actual information of the context words.
-  - Weighted by the attention scores to produce the final output.
-
-These matrices are learned during training and updated via backpropagation.
-
-
-### Multi-Head Attention
-
-1. **Why Multi-Head Attention?**
-   - Instead of using a single set of \( Q, K, V \), Multi-Head Attention uses multiple sets to capture different types of relationships between words (e.g., syntactic vs. semantic).
-
-2. **How It Works**:
-   - Each head computes its own attention output.
-   - Outputs from all heads are concatenated and passed through a final weight matrix \( W_O \):
-     \[
-     Z = \text{Concat}(O^{(head_1)}, O^{(head_2)}, \dots) \cdot W_O
-     \]
-![Multi Headed Attention](./images/multi_attn.png)
-
-### Positional Encoding
-
-- Since Self Attention does not inherently consider word order, **Positional Encoding** is added to input embeddings to encode word positions.
-- Positional encodings are vectors added to each input embedding, allowing the model to distinguish between words based on their positions in the sequence.
-![Positional Encoding](./images/positional_encoding.png)
-
-### Residual Connections and Normalization
-
-- Each encoder layer includes a **residual connection** and **normalization layers** to stabilize training and improve gradient flow.
-![Residuals](./images/residuals.png)
-
-### Summary of Self Attention
-
-1. **Input Transformation**:
-   - Input embeddings are transformed into \( Q, K, V \) using learned weight matrices.
-
-2. **Attention Calculation**:
-   - Compute attention scores using dot products of \( Q \) and \( K \), scale them, and apply softmax.
-
-3. **Weighted Sum**:
-   - Use the attention weights to compute a weighted sum of \( V \), producing the output.
-
-4. **Multi-Head Attention**:
-   - Use multiple sets of \( Q, K, V \) to capture diverse relationships, then concatenate the results.
-
-5. **Positional Encoding**:
-   - Add positional information to embeddings to account for word order.
-
-
-### Context Size and Scaling Challenges
-
-- The size of the \( Q \cdot K \) matrix grows quadratically with the context size (\( n^2 \)), making it computationally expensive for long sequences.
-- To address this, masking is used to prevent future words from influencing current words during training (e.g., in autoregressive tasks).
-- Context size
-    - Size of Q * K matrix at the end is the square of the context size, since we need to use all of the Q * K vectors, and…it’s a matrix! So it’s n*n = n^2 so it’s very hard to scale
-    - It does help that we mask ½ the examples because we don’t want future words to alter our current word and have it cheat
-        - Since for an entire sentence during training for each word we try to predict the next, so if there are 5 words there’s 1, 2, 3, 4, 5 training examples and not just 1
-        - Don’t want 4 and 5 to interfere with training 1, 2, 3
- 
-## Encoder-Decoder Attention
-
-Encoder-Decoder Attention is a mechanism used in **Seq2Seq tasks** (e.g., translation, summarization) to transform an input sequence into an output sequence. It combines **Self Attention** within the encoder and decoder blocks with **cross-attention** between the encoder and decoder
-
-
-
-### How Encoder-Decoder Attention Works
-
-1. **Encoder**:
-   - The encoder processes the input sequence and generates a sequence of **hidden states** that represent the context of the input
-   - Each encoder block consists of:
-     - **Self Attention Layer**:
-       - Allows each token in the input sequence to attend to other tokens in the sequence
-       - This captures relationships between tokens in the input
-     - **Feed Forward Layer**:
-       - Applies a fully connected feed-forward network to each token independently
-   - The output of each encoder block is passed to the next encoder block, and the final encoder block produces the **contextual embeddings** for the entire input sequence
-
-2. **Decoder**:
-   - The decoder generates the output sequence one token at a time, using both the encoder's output and its own previous outputs
-   - Each decoder block consists of:
-     - **Self Attention Layer**:
-       - Allows each token in the output sequence to attend to previous tokens in the sequence (auto-regressive behavior)
-       - Future tokens are masked to prevent the model from "cheating" by looking ahead
-     - **Encoder-Decoder Attention Layer**:
-       - Attends to the encoder's output (contextual embeddings) to incorporate information from the input sequence
-       - The **Query** comes from the decoder's self-attention output, while the **Key** and **Value** come from the encoder's output
-     - **Feed Forward Layer**:
-       - Applies a fully connected feed-forward network to each token independently
-
-3. **Final Decoder Output**:
-   - The final decoder layer produces a vector of floats for each token, which is passed through:
-     - A **linear layer** to expand the vector to the vocabulary size
-     - A **softmax layer** to produce a probability distribution over the vocabulary for the next token
-
-### Transformer Architecture for Encoder-Decoder Attention
-
-1. **Encoder**:
-   - Composed of multiple identical blocks (e.g., 6 blocks by default, but this is a hyperparameter)
-   - Each block contains:
-     - **Self Attention Layer**: Captures relationships within the input sequence
-     - **Feed Forward Layer**: Processes each token independently
-
-2. **Decoder**:
-   - Composed of multiple identical blocks (e.g., 6 blocks by default).
-   - Each block contains:
-     - **Self Attention Layer**: Captures relationships within the output sequence
-     - **Encoder-Decoder Attention Layer**: Incorporates information from the encoder's output
-     - **Feed Forward Layer**: Processes each token independently
-
-3. **Flow of Information**:
-   - The encoder processes the input sequence and generates contextual embeddings
-   - The decoder uses these embeddings, along with its own self-attention, to generate the output sequence token by token
-
-### Key Differences from Self Attention
-
-- [**Self Attention**](#self-attention):
-  - Operates within a single sequence (input or output)
-  - Captures relationships between tokens in the same sequence
-
-- **Encoder-Decoder Attention**:
-  - Operates across two sequences (input and output)
-  - Captures relationships between the input sequence (encoder output) and the output sequence (decoder input)
-
-### Training and Loss
-
-1. **Training Objective**:
-   - The model is trained to predict the next token in the output sequence given the input sequence and previous tokens in the output sequence.
-
-2. **Loss Functions**:
-   - [**Cross Entropy Loss**](../other_concepts/LOSS_FUNCTIONS.md#cross-entropy):
-     - Used to compare the predicted probability distribution (softmax output) with the true token.
-   - [**Kullback-Leibler (KL) Divergence**](../other_concepts/LOSS_FUNCTIONS.md#kl-divergence):
-     - Used to regularize the predicted probability distribution.
-
-3. **End of Sequence**:
-   - The model stops generating tokens when it outputs the `<EOS>` (end of sequence) token.
-
-### Visual Representation
-
-1. **Encoder Block**:
-   - Self Attention → Feed Forward → Output to next encoder block.
-
-2. **Decoder Block**:
-   - Self Attention → Encoder-Decoder Attention → Feed Forward → Output to next decoder block.
-
-3. **Final Decoder Output**:
-   - The final decoder output is passed through a linear layer and softmax to produce the next token.
-![Encoder Decoder Step](./images/encoder_decoder_step.png)
-
-### Summary of Encoder-Decoder Attention
-
-1. **Encoder**:
-   - Processes the input sequence and generates contextual embeddings using self-attention.
-
-2. **Decoder**:
-   - Generates the output sequence token by token using:
-     - Self Attention: Captures relationships within the output sequence.
-     - Encoder-Decoder Attention: Incorporates information from the input sequence.
-
-3. **Final Output**:
-   - The decoder's output is passed through a linear layer and softmax to produce the next token.
-
-4. **Training**:
-   - The model is trained using [cross-entropy loss](../other_concepts/LOSS_FUNCTIONS.md#cross-entropy) and [KL divergence](../other_concepts/LOSS_FUNCTIONS.md#kl-divergence), with each token in the output sequence contributing to the loss.
-![EncoderDecoder Output](./images/encoder_decoder_output.png)
 
 # User Embeddings
 TODO: Outside of collab filtering, how do we get user embeddings?
@@ -775,7 +531,7 @@ We can also see that from a ML lense, embeddings represent dense numeric feature
 - Text can go from sentences to `256 dimension` vectors in Word2Vec or BERT
 - Text can go from address sentences to `[lat, long]` 2 dimensions - we cover this in [Address Embeddings](./ADDRESS_EMBEDDING_GEOCODING.md)
 
-The main point of all of this is that Embeddings equate to --> topological properties are preserved - that's what allows the famous `King - man + woman = Queen` and `France is to Paris as Germany is to Berlin`
+The main point of all of this is that Embeddings equate to &rarr; topological properties are preserved - that's what allows the famous `King - man + woman = Queen` and `France is to Paris as Germany is to Berlin`
 
 ***A random list of numbers is a numeric representation, but they are not Embeddings***
 

@@ -51,7 +51,9 @@ These are some of the resources I frequently use and reference throughout this r
 - [Cassandra]
   - [IntelliDZine Blog Post](http://intellidzine.blogspot.com/2013/11/cassandra-data-modelling-tables.html)
   - [Pantheon Secondary Indexes Pitfalls](https://pantheon.io/blog/cassandra-scale-problem-secondary-indexes)
-
+- [Jay Alammar Illustrated]
+  - [Transformer]()
+  - [GPT2](https://jalammar.github.io/illustrated-gpt2/#part-2-illustrated-self-attention)
 
 >>>>>>> 1317f45 (Leet for today)
 ---
