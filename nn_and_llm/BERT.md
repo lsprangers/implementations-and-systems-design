@@ -15,7 +15,11 @@ BERT (Bidirectional Encoder Representations from Transformers) goes a step beyon
 
 BERT is technically an ***Encoder Only Model*** even though it has a decoder stack, the Attention is All You Need Paper references Encoder-Decoder, which BART is, but BERT is Encoder only
 
-Therefore, if we look into [Attention](./ATTENTION.md#attention) markdown, BERT would only use the [Self Attention](./ATTENTION.md#self-attention-encoding) encoding over multiple stacked encoders, ultimately resulting in an attended to set of hidden states outputs
+***Use Case***: Original Encoder-Decoder Transformers were great for *machine translation*, but that isn't the use case for BERT! Encoder only helps us with transfer learning for a variety of contextual embedding use cases
+
+![GPT, BERT, and Others](./images/gpt_bert_others.png)
+
+Therefore, if we look into [Attention](./ATTENTION.md#attention) markdown, BERT would only use the [Self Attention](./ATTENTION.md#self-attention) encoding over multiple stacked encoders, ultimately resulting in an attended to set of hidden states outputs
 
 BERT doesn't generate text, but it produces token embeddings that are great for Classification, Sentence Similarity, Sentiment Analysis, and NER / Token Level Tasks
 

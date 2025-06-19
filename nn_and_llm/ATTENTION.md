@@ -29,8 +29,10 @@ How is this done? Attention mechanisms in our DNN models. There are multiple for
 
 All of these Attention mechanisms are tunable matrices of weights - they are learned and updated through the model training process, and it's why we need to "bring along the model" during inference...otherwise we can't use the Attention!
 
-## Self Attention Encoding
+## Encoding Blocks
+The main layer we focus on in our Encoding blocks is Self Attention, but alongside this there are other linear layers that help to stabilize our context creation
 
+### Self Attention
 Self Attention allows words in a single sentence / document to attend to each other to update word embeddings in itself. It's most commonly used when we want a sentence's word embeddings to be updated by other words in the same sentence, but there's nothing stopping us from using it over an entire document.
 
 It was born out of the example of desiring a different embedding outcome of the word bank in:
@@ -69,14 +71,13 @@ TLDR;
     - We multiply the Query by every Key to find out how "similar", or "attended to" each Query should be by each Key $Q_i \cdot K_j$
 - Then we softmax it to find the percentage each Key should have on the Query
 - Finally we multiply that softmaxed representation by the Value vector, which is the input embedding multipled by Value matrix, and ultimately allow each Key context word to attend to our Query by some percentage
-- At the end, we add up all of the resulting value vectors, and combine that with the original input embedding
+- At the end, we sum together all of the resulting value vectors, and ***this resulting SUM of weighted value vectors is our attended to output embedding***
 
 - In the below example:
    - The dark blue vector from the left is the Query
    - The light blue vector on top are the Keys
    - We multiple them together + softmax
-   - Multiple the result of that by each Value vector on the bottom
-   - Add that final result onto our input embedding $y_3$
+   - Multiply the result of that by each Value vector on the bottom
 
 ![SelfAttention](./images/self_attention.png)
 
@@ -183,6 +184,8 @@ This diagram below shows one single encoding block using Self Attention
 - In Masked Self Attention, it's the same process as Self Attention except we mask a certain number of words so that the \( Q \cdot K \) results in 0 effectively removing it from attention scoring
     - In BERT training we mask a number of words inside of the sentence
     - In GPT2 training we mask all future words (right hand of sentence from any word)
+   
+![Masked Self Attention](./images/masked_self_attention.png)
 
 ### Context Size and Scaling Challenges
 
@@ -238,7 +241,7 @@ Encoder-Decoder Attention is a mechanism used in **Seq2Seq tasks** (e.g., transl
          - These K, V contextual output embeddings are passed to each Decoder block
       - The previous Decoder block(s) output (previously generated word)
    - Each decoder block consists of:
-     - **Self Attention Layer**:
+     - **Masked Self Attention Layer**:
        - Allows each token in the output sequence to attend to previously generated tokens in the sequence (auto-regressive behavior)
        - Future tokens are masked to prevent the model from "cheating" by looking ahead
        - So self-attention only happens from words on the left, not all Keys
