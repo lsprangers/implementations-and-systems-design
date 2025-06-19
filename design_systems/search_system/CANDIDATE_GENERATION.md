@@ -238,7 +238,7 @@ Where:
     - Another way this is done is by weighting $w_{i,j}$ carefully, and disregarding the regularization parameter entirely
 
 Solving for this equation:
-- We can use [Stochastic Gradient Descent (SGD)](LOSS_FUNCTIONS.md#stochastic-gradient-descent) or [Weighted Alternating Least Squares (WALS)](./LOSS_FUNCTIONS.md#weighted-alternating-least-squares)
+- We can use [Stochastic Gradient Descent (SGD)](../../nn_and_llm/LOSS_FUNCTIONS.md#stochastic-gradient-descent) or [Weighted Alternating Least Squares (WALS)](../../nn_and_llm/LOSS_FUNCTIONS.md#weighted-alternating-least-squares)
     - SGD is more generic, but is battle tested and true
     - WALS is more specific and helpful for this specific objective
     - WALS is most likely the ideal function since both matrices we solve for are quadratic
@@ -260,9 +260,9 @@ Solving for this equation:
     - Cold start
     - "Freshness" and bypassing "popular only" items via Dot product
 - Pretty much everything is the same for creating / fetching the user-item embeddings, but we can also add in other features such as generic user embeddings, user metadata and categorical features, and other account information that might be relevant
-- [A Softmax Layer](../../other_concepts/LOSS_FUNCTIONS.md#softmax) will allow us to do multi-class classification, where we basically predict the probability of usage over an entire corpus / corpus subset of videos
+- [A Softmax Layer](../../nn_and_llm/LOSS_FUNCTIONS.md#softmax) will allow us to do multi-class classification, where we basically predict the probability of usage over an entire corpus / corpus subset of videos
     - The softmax layer would need to be trained over the entire corpus since any of the videos have a potential to be included in this (sub)set
-    - Since our output is a probability distribution that's comparable to truth (all 0's and a 1) we can use [cross-entropy loss function](../../other_concepts/LOSS_FUNCTIONS.md#cross-entropy)
+    - Since our output is a probability distribution that's comparable to truth (all 0's and a 1) we can use [cross-entropy loss function](../../nn_and_llm/LOSS_FUNCTIONS.md#cross-entropy)
 - We could also add in other hidden layers and non-linear (ReLU) layers, or anything else, to capture non-linear relationships
 - We could also change the entire hidden layers to remove the matrix factorization phase, and use the hidden layers as a way to map user features into a projected embedding layer
 
