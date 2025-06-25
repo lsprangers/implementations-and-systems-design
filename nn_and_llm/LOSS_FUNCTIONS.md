@@ -182,3 +182,15 @@ Where:
    - Task: Predict the probability of a user interacting with an item.
    - Use **Cross Entropy** if the ground truth is binary (e.g., clicked or not clicked).
    - Use **KL Divergence** if the ground truth is a probability distribution over items.
+
+## InfoNCE Loss
+InfoNCE loss, or Information Noise-Contrastive Estimation loss is used in ***self-supervised learning*** to train models to learn meaningful representations by distinguishing between positive and negative sample pairs
+
+It does this by giving low loss to similar pairs - i.e. by maximizing the similarity between positive pairs, and minimizing the similarity between negative pairs
+
+### Formal Definition
+Given a set $X = \{x_1, x_2, ..., x_N\}$ of $N$ random samples containing one positive sample from $p(x_{t+k} | c_t)$ and $N-1$ negative samples from the 'proposal' distribution $p(x_{t+k})$, we optimize:
+
+\[
+\mathcal{L}_{\text{InfoNCE}} = -\mathbb{E} \left[ \log \frac{\exp(\text{sim}(z, z^+)/\tau)}{\exp(\text{sim}(z, z^+)/\tau) + \sum_{j=1}^{N-1} \exp(\text{sim}(z, z_j^-)/\tau)} \right]
+\]

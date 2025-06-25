@@ -1,3 +1,12 @@
+- [GPT-2](#gpt-2)
+  - [History](#history)
+  - [Pseudo Architecture](#pseudo-architecture)
+  - [Architecture](#architecture)
+    - [Input](#input)
+    - [Transformer Decoder Only Block](#transformer-decoder-only-block)
+    - [Logits Output](#logits-output)
+      - [Output Parameters](#output-parameters)
+    - [Completed!](#completed)
 # GPT-2
 GPT-2 was one of the first, and most notable GPT models!
 

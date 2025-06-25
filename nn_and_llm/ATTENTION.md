@@ -7,16 +7,14 @@
     - [Multi-Head Attention](#multi-head-attention)
     - [Positional Encoding](#positional-encoding)
     - [Residual Connections and Normalization](#residual-connections-and-normalization)
-    - [Summary of Self Attention](#summary-of-self-attention)
+    - [Summary of Self Attention Encoding](#summary-of-self-attention-encoding)
     - [Masked Self Attention](#masked-self-attention)
     - [Context Size and Scaling Challenges](#context-size-and-scaling-challenges)
   - [Encoder-Decoder Attention](#encoder-decoder-attention)
     - [How Encoder-Decoder Attention Works](#how-encoder-decoder-attention-works)
-    - [Transformer Architecture for Encoder-Decoder Attention](#transformer-architecture-for-encoder-decoder-attention)
-    - [Key Differences from Self Attention](#key-differences-from-self-attention)
-    - [Training and Loss](#training-and-loss)
     - [Visual Representation](#visual-representation)
     - [Summary of Encoder-Decoder Attention](#summary-of-encoder-decoder-attention)
+    - [Training and Loss](#training-and-loss)
 
 # Attention
 Attention is what separates static embeddings from dynamic embeddings - they allow word embeddings to be updated, aka attended to, by the contextual words surrounding them
@@ -130,6 +128,9 @@ In depth mathematical explanation below
 
 - Since Self Attention does not inherently consider word order, **Positional Encoding** is added to input embeddings to encode word positions
 - Positional encodings are vectors added to each input embedding, allowing the model to distinguish between words based on their positions in the sequence
+- **Why is ***sinusoidal*** relevant and useful?**
+   - Allows Transformer to learn relative positions via linear functions (e.g., $\text PE_{pos+k}$​ can be derived from $\text PE_{pos}$)
+   - We all know neural nets like linear functions! So it's helpful in ensuring a relationship that's understandable 
 ![Positional Encoding](./images/positional_encoding.png)
 
 ### Residual Connections and Normalization
@@ -141,6 +142,8 @@ In depth mathematical explanation below
 - Apply LayerNorm to the result
    - This just means normalize all actual numeric values over the words embedding
 - **If the diagram shows a block over the whole sentence, it just means the operation is applied to all words, but always independently for each word
+- **Why is any of this useful**:
+   - Helps with gradient vanishing and exploding, and also ensures input stability
 
 ![Self Attention Encoding](./images/summary_self_attention_encoding.png)
 
