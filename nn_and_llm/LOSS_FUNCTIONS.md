@@ -130,6 +130,10 @@ Where:
 
 ---
 
+## L2 Loss
+TODO: L2
+---
+
 ## KL Divergence
 KL Divergence (Kullback-Leibler Divergence) is a measure of how one probability distribution \( q \) (predicted) diverges from a second probability distribution \( p \) (true). It is often used in tasks where the true labels are **probability distributions** rather than one-hot encoded labels.
 

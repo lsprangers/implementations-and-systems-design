@@ -55,6 +55,7 @@ These are some of the resources I frequently use and reference throughout this r
   - [Transformer](https://jalammar.github.io/illustrated-transformer/)
   - [GPT2](https://jalammar.github.io/illustrated-gpt2/#part-2-illustrated-self-attention)
 - [LayerNorm](https://h2o.ai/wiki/layer-normalization/)
+- [Another persons blog - AmitNess](https://amitness.com)
 ---
 
 ## 🛠️ Design Systems
